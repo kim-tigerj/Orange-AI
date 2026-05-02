@@ -1,0 +1,19 @@
+﻿# --- LLM Research (Brain) ---
+llm/**/models/*.gguf
+llm/**/models/*.bin
+llm/**/models/*.safetensors
+llm/**/logs/*.log
+llm/**/.cache/
+llm/**/__pycache__/
+
+# --- Windows Development (Body) ---
+bin/
+obj/
+.vs/
+*.user
+*.pdb
+
+# --- General ---
+.env
+TransferToMac.zip
+credentials.json
