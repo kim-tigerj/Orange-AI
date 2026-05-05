@@ -20,3 +20,24 @@
 - 모든 의사결정과 연구 결과는 각 계층의 `doc/` 폴더에 기록됩니다.
 - 상위 문서는 하위 문서의 개념적 부모 역할을 하며, 하위는 상위의 비전을 구체화합니다.
 - 새로운 인스턴스는 반드시 [GOVERNANCE.md](doc/GOVERNANCE.md)를 먼저 숙지해야 합니다.
+
+## Oh-Council / 오감독 3자 협업체계
+
+Claude Code, Gemini, Codex를 함께 쓰는 작업은 **Oh-Council** 프로토콜을 따릅니다.
+영문명은 **Oh Supervisor 3-Way Collaboration System**입니다.
+터미널에서 한국어가 깨질 수 있으므로 CLI/문서 식별자는 `Oh-Council`을 사용합니다.
+
+시작 시 반드시 읽을 문서:
+
+- [OH_COUNCIL.md](OH_COUNCIL.md)
+- [MANAGER_HANDOFF.md](MANAGER_HANDOFF.md)
+- [CLAUDE.md](CLAUDE.md)
+
+핵심 규칙:
+
+```text
+논의는 3자 합의.
+실행은 단일 책임.
+검증은 3자 순환.
+결정은 문서에 기록.
+```
