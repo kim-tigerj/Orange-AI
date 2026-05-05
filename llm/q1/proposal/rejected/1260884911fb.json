@@ -1,0 +1,68 @@
+{
+  "created_at": "2026-05-05 16:21:19",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 16:21:19",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "1260884911fb",
+  "moved_at": "2026-05-05 16:21:19",
+  "nonce": "6ffeca51",
+  "problem": "LoRA 데이터셋에 실제 write 성공 샘플을 만들기 위해 안전한 dataset manifest 파일을 갱신한다.",
+  "proposed_tool_call": "<tool_call name=\"replace\" path=\"llm/q1/dataset/lora/WRITE_SAMPLES.md\" old_string=\"# q1 Safe Write Samples\n\n- generated_at: 2026-05-05 16:20:57; source: proposal-autopilot safe-write\" new_string=\"# q1 Safe Write Samples\n\n- generated_at: 2026-05-05 16:20:57; source: proposal-autopilot safe-write\n- generated_at: 2026-05-05 16:21:19; source: proposal-autopilot safe-write\n\" </tool_call>",
+  "rationale": "코드 본체가 아닌 dataset 문서 파일에만 쓰는 저위험 write proposal로 오감독 apply/rollback 경로를 검증한다.",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-05 16:21:19"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "proposal-autopilot-safe-write",
+  "status": "rejected",
+  "target": "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+}

@@ -5,6 +5,12 @@ llm/**/models/*.safetensors
 llm/**/logs/*.log
 llm/**/.cache/
 llm/**/__pycache__/
+llm/**/node_modules/
+llm/**/cache/
+llm/**/log/
+llm/log/
+llm/q1/job/
+llm/q1/proposal/pending/
 
 # --- Windows Development (Body) ---
 bin/
@@ -17,3 +23,9 @@ obj/
 .env
 TransferToMac.zip
 credentials.json
+venv/
+.q1_history
+server.log
+q1_server.stderr.log
+q1_test_output.txt
+상대경로

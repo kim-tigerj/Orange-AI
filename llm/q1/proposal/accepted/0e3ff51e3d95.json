@@ -1,0 +1,69 @@
+{
+  "application": {
+    "applied_at": "2026-05-05 16:10:41",
+    "changed_files": [],
+    "note": "DONE_NO_CHANGE proposal accepted without file writes",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-05 16:07:14",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 16:10:41",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "0e3ff51e3d95",
+  "moved_at": "2026-05-05 16:10:41",
+  "nonce": "420db1b6",
+  "problem": "다음 수동 작업 명령 후보를 검토한다: --status",
+  "proposed_tool_call": "DONE_NO_CHANGE",
+  "rationale": "현재 큐 상태에서 안전한 수정 제안 대신 운영 판단 샘플을 남긴다.",
+  "risk": "low",
+  "role": "planner",
+  "schema_version": 1,
+  "source": "self-play",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:next_manual_job_command"
+}

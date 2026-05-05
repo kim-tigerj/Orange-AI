@@ -1,0 +1,69 @@
+{
+  "application": {
+    "applied_at": "2026-05-05 16:14:26",
+    "changed_files": [],
+    "note": "read-only proposal accepted without file writes",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-05 16:14:26",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 16:14:26",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "ddc44761bef5",
+  "moved_at": "2026-05-05 16:14:26",
+  "nonce": "39fe91b0",
+  "problem": "문자열 치환 도구가 match 실패 원인을 더 명확히 보고하도록 개선한다.",
+  "proposed_tool_call": "<tool_call name=\"read_function\" path=\"llm/q1/core/handlers.py\" func_name=\"replace\" />",
+  "rationale": "큐가 비었으므로 deterministic seed 후보를 self-play 문제 정의 샘플로 전환한다. next_action=--status",
+  "risk": "low",
+  "role": "planner",
+  "schema_version": 1,
+  "source": "self-play",
+  "status": "accepted",
+  "target": "llm/q1/core/handlers.py:replace"
+}
