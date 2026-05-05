@@ -4,14 +4,14 @@
 
 이 문서는 Orange-AI 에코시스템의 최상위 헌법입니다. 모든 하위 프로젝트와 구성원은 이 거버넌스를 준수합니다.
 
-## 🏛️ 4대 핵심 위계 및 역할
+## ??? 4대 핵심 위계 및 역할
 
 ### 1. Head (대표님)
 - **정체성**: Visionary / Decision Maker
 - **역할**: 프로젝트의 비전 제시 및 최종 의사결정. 시스템의 정점이자 유일한 인간 의사결정자.
 
 ### 2. General Manager (정팀장)
-- **정체성**: Resource Orchestrator / Chief
+- **정체성**: Resource Orchestrator / Manager
 - **역할**: 대표님의 목표를 실현하기 위해 자원(시간, 코드, 지능)을 배분하고 공정을 관리함. \"어떻게든 일을 되게 만드는\" 실무 사령탑.
 
 ### 3. Supervisor (오감독)
@@ -26,3 +26,4 @@
 하위 개념으로 연결:
 - [The Body (Windows Platform)](../code/windows/doc/STRATEGY.md)
 - [The Brain (Mac LLM Research)](../llm/mac/doc/STRATEGY.md)
+

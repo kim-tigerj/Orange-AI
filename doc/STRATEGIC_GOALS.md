@@ -1,9 +1,52 @@
-﻿# Orange Ecosystem Strategic Goals (거시 목표)
+# OR-1305 Orange Code Strategy
 
-## 🎯 핵심 마일스톤
-1. **[M4 Mac] 로컬 지능 상용화**: M4 맥북의 성능을 활용해 외부 API 수준의 코딩 에이전트 구축.
-2. **[Windows] 네이티브 앱 릴리즈**: Win32/D2D 기반의 초경량 채팅 UI 완성.
-3. **[Ecosystem] 자율 협업 루프 완성**: 정팀장-오감독-팀원 간의 0인 개입 루프 구현.
+Orange Code exists to move repeated coding work from human time into LLM-managed time.
 
----
-현재 상태: [ 진행 중 ]
+## Product Thesis
+
+Claude Code is useful, but its session model is not enough for long-running, inspectable, multi-actor development. Orange Code turns the workflow itself into the product:
+
+- persistent tasks,
+- visible progress,
+- manager/member/supervisor roles,
+- build and capture verification,
+- native lightweight UI,
+- controlled token and quota usage.
+
+## Role Model
+
+- `manager`: 정팀장, the main in-app actor.
+- `member`: bounded worker for one task.
+- `supervisor`: 오감독/reviewer/recovery actor.
+
+`manager` is the required role name for the Jeong Team Lead app.
+
+## Near-Term Priorities
+
+1. Manager awakening
+   - backend child processes must receive `ORANGE_CODE_ROOT`, `ORANGE_CODE_ROLE=manager`, `ORANGE_CODE_PID`, and `ORANGE_CODE_SESSION_KEY`.
+
+2. Reliable coding loop
+   - user request,
+   - manager response,
+   - file edit,
+   - build,
+   - capture or test,
+   - concise report.
+
+3. Cost control
+   - default to mock/offline tests,
+   - avoid repeated external LLM calls,
+   - keep durable context in files.
+
+4. Coding-oriented UI
+   - chat is acceptable, but code blocks, logs, diffs, and work summaries must be the primary optimized surface.
+
+## Related Issues
+
+- OR-1305: core Orange Code vision
+- OR-1317: work hierarchy and progress dashboard
+- OR-1318: coordination mechanism
+- OR-1325: Gemini backend
+- OR-1326: backend selection
+- OR-1328: SQLite coordination system

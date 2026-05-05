@@ -7,3 +7,4 @@
 2. **소통 채널 접속**: [GLOBAL_FEED.md](GLOBAL_FEED.md)에서 현재 교신 내용을 확인하십시오.
 3. **전략 파악**: 당신이 속한 플랫폼의 `doc/STRATEGY.md`를 읽으십시오.
 4. **태스크 수령**: 해당 버전의 `doc/TASKS.md` 혹은 `RESEARCH_TASKS.md`에서 작업을 수령하십시오.
+
