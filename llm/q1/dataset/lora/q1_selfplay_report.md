@@ -1,9 +1,9 @@
 # q1 LoRA Dataset Report
 
-- generated_at: 2026-05-06 13:02:37
+- generated_at: 2026-05-06 13:45:01
 - output: llm/q1/dataset/lora/q1_selfplay.jsonl
 - samples: 260
-- duplicate_removed: 1030
+- duplicate_removed: 1031
 - average_quality_score: 0.613
 
 ## Labels
@@ -36,4 +36,5 @@
 
 ## Model Parse Reasons
 - ok: 172
-- no_tool_call: 46
+- no_tool_call: 40
+- truncated_output: 6

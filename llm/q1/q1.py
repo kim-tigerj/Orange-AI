@@ -3261,6 +3261,9 @@ class Q1Engine:
             return {"kind": "malformed", "calls": [], "reason": "empty"}
         if text == "DONE_NO_CHANGE":
             return {"kind": "no_change", "calls": [], "reason": "ok"}
+        truncation_reason = self.model_output_truncation_reason(text)
+        if truncation_reason:
+            return {"kind": "malformed", "calls": [], "reason": truncation_reason}
         try:
             calls = self.tool_handler.parse_tool_calls(text)
         except Exception as exc:
@@ -3293,6 +3296,30 @@ class Q1Engine:
         if calls[0].get("name") in read_tools:
             return {"kind": "read_only", "calls": calls, "reason": "ok", "normalized_tool_call": normalized}
         return {"kind": "malformed", "calls": calls, "reason": "no_read_or_write_tool"}
+
+    def model_output_truncation_reason(self, text):
+        stripped = text.strip()
+        if not stripped or stripped == "DONE_NO_CHANGE":
+            return ""
+        fenced = re.match(r"^```(?:json)?\s*", stripped)
+        if fenced and not stripped.endswith("```"):
+            return "truncated_output"
+        open_tool_calls = len(re.findall(r"<tool_call(?:\s[^>]*)?>", stripped, flags=re.DOTALL))
+        closed_tool_calls = len(re.findall(r"</tool_call>", stripped, flags=re.DOTALL))
+        self_closing_tool_calls = len(re.findall(r"<tool_call\s+[^>]*/>", stripped, flags=re.DOTALL))
+        if open_tool_calls > closed_tool_calls + self_closing_tool_calls:
+            return "truncated_output"
+        candidate = stripped
+        fence_match = re.match(r"^```(?:json)?\s*(.*?)\s*```$", candidate, re.DOTALL)
+        if fence_match:
+            candidate = fence_match.group(1).strip()
+        if candidate.startswith("{") and not candidate.endswith("}"):
+            try:
+                json.loads(candidate)
+            except json.JSONDecodeError as exc:
+                if exc.pos >= max(0, len(candidate) - 8):
+                    return "truncated_output"
+        return ""
 
     def canonical_tool_call_text(self, call):
         name = call.get("name")
@@ -3471,6 +3498,17 @@ class Q1Engine:
         calls = self.tool_handler.parse_tool_calls(proposed)
         return calls
 
+    def proposal_tool_parse_failure_message(self, proposal):
+        raw = proposal.get("model_output_raw")
+        if not isinstance(raw, str) or not raw.strip():
+            raw = proposal.get("proposed_tool_call", "")
+        if not isinstance(raw, str) or not raw.strip():
+            return "missing or malformed tool_call"
+        reason = self.parse_model_proposal_text(raw).get("reason", "")
+        if reason == "truncated_output":
+            return "truncated_output"
+        return "missing or malformed tool_call"
+
     def validate_proposal_schema(self, proposal):
         required = [
             "id", "schema_version", "status", "target", "problem",
@@ -3561,7 +3599,7 @@ class Q1Engine:
                 calls = self.parse_proposal_tool_call(proposal)
                 proposed = proposal.get("proposed_tool_call", "").strip()
                 parse_ok = proposed == "DONE_NO_CHANGE" or bool(calls)
-                results.append(self.gate_result("tool_parse", parse_ok, "tool parse ok" if parse_ok else "missing or malformed tool_call"))
+                results.append(self.gate_result("tool_parse", parse_ok, "tool parse ok" if parse_ok else self.proposal_tool_parse_failure_message(proposal)))
             except Exception as exc:
                 results.append(self.gate_result("tool_parse", False, str(exc)))
         else:

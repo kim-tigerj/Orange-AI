@@ -116,6 +116,17 @@ class Q1CoreFixtureTests(unittest.TestCase):
             "tool_parse: missing or malformed tool_call; static_reject: protected target function: replace",
         )
 
+    def test_proposal_tool_parse_failure_message_uses_truncated_output(self):
+        proposal = {
+            "proposed_tool_call": '<tool_call>\n{"name": "write_file", "arguments": {"path": "x"',
+            "model_output_raw": '<tool_call>\n{"name": "write_file", "arguments": {"path": "x"',
+        }
+        self.assertEqual(self.engine.proposal_tool_parse_failure_message(proposal), "truncated_output")
+
+    def test_proposal_tool_parse_failure_message_keeps_generic_for_no_tool(self):
+        proposal = {"proposed_tool_call": "not a tool call", "model_output_raw": "not a tool call"}
+        self.assertEqual(self.engine.proposal_tool_parse_failure_message(proposal), "missing or malformed tool_call")
+
     def test_autopilot_mode_validation(self):
         with self.assertRaises(SystemExit):
             self.engine.proposal_autopilot(mode="invalid")
@@ -240,6 +251,40 @@ class Q1CoreFixtureTests(unittest.TestCase):
         parsed = self.engine.parse_model_proposal_text(text)
         self.assertEqual(parsed["kind"], "malformed")
         self.assertEqual(parsed["reason"], "unparsed_tool_call")
+
+    def test_parse_model_proposal_text_rejects_truncated_tool_call(self):
+        text = (
+            '<tool_call>\n'
+            '{"name": "replace_function", "arguments": {"path": "llm/q1/q1.py", '
+            '"func_name": "sample", "content": "def sample():\\n    return'
+        )
+        parsed = self.engine.parse_model_proposal_text(text)
+        self.assertEqual(parsed["kind"], "malformed")
+        self.assertEqual(parsed["reason"], "truncated_output")
+
+    def test_parse_model_proposal_text_rejects_truncated_bare_json(self):
+        text = (
+            '{"name": "read_function", "arguments": {"path": "llm/q1/q1.py", '
+            '"func_name": "self_play"'
+        )
+        parsed = self.engine.parse_model_proposal_text(text)
+        self.assertEqual(parsed["kind"], "malformed")
+        self.assertEqual(parsed["reason"], "truncated_output")
+
+    def test_proposal_to_lora_sample_tracks_truncated_model_output(self):
+        proposal = {
+            "id": "p3",
+            "target": "llm/q1/q1.py:self_play",
+            "problem": "잘린 출력을 negative sample로 남긴다",
+            "rationale": "truncation reason을 보존한다",
+            "risk": "low",
+            "source": "self-play-model-v1",
+            "proposed_tool_call": '<tool_call>\n{"name": "write_file", "arguments": {"path": "x"',
+            "rejection": {"reason": "tool_parse: missing or malformed tool_call"},
+            "model_output_raw": '<tool_call>\n{"name": "write_file", "arguments": {"path": "x"',
+        }
+        sample = self.engine.proposal_to_lora_sample(proposal, "rejected")
+        self.assertEqual(sample["metadata"]["model_parse_reason"], "truncated_output")
 
     def test_parse_model_proposal_text_accepts_bare_json_and_normalizes(self):
         text = (
