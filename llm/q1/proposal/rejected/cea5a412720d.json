@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 03:02:03",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 03:02:08",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "cea5a412720d",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 81677,
+    "max_tokens": 1024,
+    "prompt_hash": "266408f4bad0b1f9bce6015ad9db798e6b97f72ed590e0580ee1b1530f00e0ce",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"write_improve_report\", \"content\": \"    def write_improve_report(self, job_path, report):\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        os.makedirs(report_dir, exist_ok=True)\\n        safe_name = os.path.basename(job_path).replace(\\u0022.md\\u0022, \\u0022\\u0022)\\n        report_path = os.path.join(report_dir, f\\u0022{datetime.now().strftime(\\u0027%Y%m%d_%H%M%S\\u0027)}_{safe_name}.md\\u0022)\\n        verdict = \\u0022DONE\\u0022 if report[\\u0022ok\\u0022] and report[\\u0022changed_files\\u0022] else \\u0022NO_CHANGE\\u0022 if report[\\u0022ok\\u0022] else \\u0022CONTINUE\\u0022\\n        lines = [\\n            \\u0022# q1 Improve Once Report\\u0022,\\n            \\u0022\\u0022,\\n            f\\u0022- job: {report[\\u0027job\\u0027]}\\u0022,\\n            f\\u0022- timestamp: {report[\\u0027timestamp\\u0027]}\\u0022,\\n            f\\u0022- verdict: {verdict}\\u0022,\\n            f\\u0022- changed_files: {', '.join(report[\\u0027changed_files\\u0027]) if report[\\u0027changed_files\\u0027] else '(none)'}\\u0022,\\n            f\\u0022- tool_error_count: {len(report.get(\\u0027tool_errors\\u0027, []))}\\u0022,\\n        ]\\n        if report.get(\\u0022goal\\u0022):\\n            lines.append(f\\u0022- goal: {report[\\u0027goal\\u0027]}\\u0022)\\n        if report.get(\\u0022target_source_hash\\u0022):\\n            lines.append(f\\u0022- target_source_hash: {report[\\u0027target_source_hash\\u0027]}\\u0022)\\n        if report.get(\\u0022model_elapsed_ms\\u0022) is not None:\\n            lines.append(f\\u0022- model_elapsed_ms: {report[\\u0027model_elapsed_ms\\u0027]}\\u0022)\\n        if report.get(\\u0022rolled_back_files\\u0022):\\n            lines.append(f\\u0022- rolled_back_files: {', '.join(report[\\u0027rolled_back_files\\u0027])}\\u0022)\\n        if report.get(\\u0022server_restarted\\u0022) is not None:\\n            lines.append(f\\u0022- server_restarted: {str(report[\\u0027server_restarted\\u0027]).lower()}\\u0022)\\n        if any(\\u0022fast_no_change\\u0022 in result for result in report.get(\\u0022tool_results\\u0022, [])):\\n            lines.append(\\u0022- model_call_skipped: true\\u0022)\\n        lines.append(\\u0022\\u0022)\\n        for item in report[\\u0022results\\u0022]:\\n            if item[\\u0022ok\\u0022]:\\n                result_summary = \\u0022PASS\\u0022\\n            else:\\n                result_summary = \\u0022FAIL\\u0022\\n                if \\u0022error\\u0022 in item:\\n                    result_summary += f\\u0022 (원인: {item[\\u0027error\\u0027]})\\u0022\\n                if \\u0022result\\u00",
+  "moved_at": "2026-05-06 03:02:08",
+  "nonce": "d12b9b10",
+  "problem": "다음 반복이 전체 로그를 읽지 않아도 원인과 결과를 판단하도록 보고서 품질을 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"write_improve_report\", \"content\": \"    def write_improve_report(self, job_path, report):\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        os.makedirs(report_dir, exist_ok=True)\\n        safe_name = os.path.basename(job_path).replace(\\u0022.md\\u0022, \\u0022\\u0022)\\n        report_path = os.path.join(report_dir, f\\u0022{datetime.now().strftime(\\u0027%Y%m%d_%H%M%S\\u0027)}_{safe_name}.md\\u0022)\\n        verdict = \\u0022DONE\\u0022 if report[\\u0022ok\\u0022] and report[\\u0022changed_files\\u0022] else \\u0022NO_CHANGE\\u0022 if report[\\u0022ok\\u0022] else \\u0022CONTINUE\\u0022\\n        lines = [\\n            \\u0022# q1 Improve Once Report\\u0022,\\n            \\u0022\\u0022,\\n            f\\u0022- job: {report[\\u0027job\\u0027]}\\u0022,\\n            f\\u0022- timestamp: {report[\\u0027timestamp\\u0027]}\\u0022,\\n            f\\u0022- verdict: {verdict}\\u0022,\\n            f\\u0022- changed_files: {', '.join(report[\\u0027changed_files\\u0027]) if report[\\u0027changed_files\\u0027] else '(none)'}\\u0022,\\n            f\\u0022- tool_error_count: {len(report.get(\\u0027tool_errors\\u0027, []))}\\u0022,\\n        ]\\n        if report.get(\\u0022goal\\u0022):\\n            lines.append(f\\u0022- goal: {report[\\u0027goal\\u0027]}\\u0022)\\n        if report.get(\\u0022target_source_hash\\u0022):\\n            lines.append(f\\u0022- target_source_hash: {report[\\u0027target_source_hash\\u0027]}\\u0022)\\n        if report.get(\\u0022model_elapsed_ms\\u0022) is not None:\\n            lines.append(f\\u0022- model_elapsed_ms: {report[\\u0027model_elapsed_ms\\u0027]}\\u0022)\\n        if report.get(\\u0022rolled_back_files\\u0022):\\n            lines.append(f\\u0022- rolled_back_files: {', '.join(report[\\u0027rolled_back_files\\u0027])}\\u0022)\\n        if report.get(\\u0022server_restarted\\u0022) is not None:\\n            lines.append(f\\u0022- server_restarted: {str(report[\\u0027server_restarted\\u0027]).lower()}\\u0022)\\n        if any(\\u0022fast_no_change\\u0022 in result for result in report.get(\\u0022tool_results\\u0022, [])):\\n            lines.append(\\u0022- model_call_skipped: true\\u0022)\\n        lines.append(\\u0022\\u0022)\\n        for item in report[\\u0022results\\u0022]:\\n            if item[\\u0022ok\\u0022]:\\n                result_summary = \\u0022PASS\\u0022\\n            else:\\n                result_summary = \\u0022FAIL\\u0022\\n                if \\u0022error\\u0022 in item:\\n                    result_summary += f\\u0022 (원인: {item[\\u0027error\\u0027]})\\u0022\\n                if \\u0022result\\u00",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 03:02:08"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:write_improve_report"
+}

@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 07:43:08",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 07:43:20",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "f886851e4d6a",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 46949,
+    "max_tokens": 1024,
+    "prompt_hash": "2412c61028346bd41e3266042206b7152b39d161149f92ae53116a0cd4ccd7b5",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"generate_response_server\", \"content\": \"    def generate_response_server(self, messages, max_tokens, *, disable_cache=False):\\n        self.last_response_cache_hit = False\\n        self.last_generation_streamed = False\\n        if not disable_cache:\\n            cached = self.read_response_cache(messages, max_tokens)\\n            if cached is not None:\\n                self.last_generation_elapsed_ms = 0\\n                self.last_response_cache_hit = True\\n                return cached\\n        payload = json.dumps({\\\"messages\\\": messages, \\\"max_tokens\\\": max_tokens}).encode(\\\"utf-8\\\")\\n        request_url = f\\\"{self.server_url}/generate_stream\\\"\\n        request = urllib.request.Request(\\n            request_url,\\n            data=payload,\\n            headers={\\\"Content-Type\\\": \\\"application/json\\\"},\\n            method=\\\"POST\\\",\\n        )\\n        started = time.monotonic()\\n        chunks = []\\n        try:\\n            with urllib.request.urlopen(request, timeout=self.server_timeout) as response:\\n                for raw_line in response:\\n                    if not raw_line.strip():\\n                        continue\\n                    event = json.loads(raw_line.decode(\\\"utf-8\\\"))\\n                    event_type = event.get(\\\"event\\\")\\n                    if event_type == \\\"chunk\\\":\\n                        text = event.get(\\\"text\\\", \\\"\\\")\\n                        chunks.append(text)\\n                        self.last_generation_streamed = True\\n                        console.print(text, end=\\\"\\\", markup=False)\\n                    elif event_type == \\\"error\\\":\\n                        raise RuntimeError(f\\\"q1 server error: {event.get(\\'error\\')} at {request_url}\\\")\\n                    elif event_type == \\\"done\\\":\\n                        break\\n        except urllib.error.HTTPError as exc:\\n            if exc.code == 404:\\n                return self.generate_response_server_blocking(messages, max_tokens, started=started, disable_cache=disable_cache)\\n            raise RuntimeError(f\\\"q1 server error: HTTP {exc.code} at {request_url} - {exc.reason}\\\") from exc\\n        except urllib.error.URLError as exc:\\n            raise RuntimeError(f\\\"q1 server unavailable at {request_url}: {exc.reason}\\\") from exc\\n        self.last_generation_elapsed_ms = int((time.monotonic() - started) * 1000)\\n        text = \\\"\\\".join(chunks)\\n        if not disable_cache:\\n            self.write_response_cache(messages, max_tokens, text)\\n        return text\\n\"}}",
+  "moved_at": "2026-05-06 07:43:20",
+  "nonce": "2586f44b",
+  "problem": "서버 요청 실패나 지연이 반복 루프 보고서에 더 명확히 남도록 서버 호출 경로를 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"generate_response_server\", \"content\": \"    def generate_response_server(self, messages, max_tokens, *, disable_cache=False):\\n        self.last_response_cache_hit = False\\n        self.last_generation_streamed = False\\n        if not disable_cache:\\n            cached = self.read_response_cache(messages, max_tokens)\\n            if cached is not None:\\n                self.last_generation_elapsed_ms = 0\\n                self.last_response_cache_hit = True\\n                return cached\\n        payload = json.dumps({\\\"messages\\\": messages, \\\"max_tokens\\\": max_tokens}).encode(\\\"utf-8\\\")\\n        request_url = f\\\"{self.server_url}/generate_stream\\\"\\n        request = urllib.request.Request(\\n            request_url,\\n            data=payload,\\n            headers={\\\"Content-Type\\\": \\\"application/json\\\"},\\n            method=\\\"POST\\\",\\n        )\\n        started = time.monotonic()\\n        chunks = []\\n        try:\\n            with urllib.request.urlopen(request, timeout=self.server_timeout) as response:\\n                for raw_line in response:\\n                    if not raw_line.strip():\\n                        continue\\n                    event = json.loads(raw_line.decode(\\\"utf-8\\\"))\\n                    event_type = event.get(\\\"event\\\")\\n                    if event_type == \\\"chunk\\\":\\n                        text = event.get(\\\"text\\\", \\\"\\\")\\n                        chunks.append(text)\\n                        self.last_generation_streamed = True\\n                        console.print(text, end=\\\"\\\", markup=False)\\n                    elif event_type == \\\"error\\\":\\n                        raise RuntimeError(f\\\"q1 server error: {event.get(\\'error\\')} at {request_url}\\\")\\n                    elif event_type == \\\"done\\\":\\n                        break\\n        except urllib.error.HTTPError as exc:\\n            if exc.code == 404:\\n                return self.generate_response_server_blocking(messages, max_tokens, started=started, disable_cache=disable_cache)\\n            raise RuntimeError(f\\\"q1 server error: HTTP {exc.code} at {request_url} - {exc.reason}\\\") from exc\\n        except urllib.error.URLError as exc:\\n            raise RuntimeError(f\\\"q1 server unavailable at {request_url}: {exc.reason}\\\") from exc\\n        self.last_generation_elapsed_ms = int((time.monotonic() - started) * 1000)\\n        text = \\\"\\\".join(chunks)\\n        if not disable_cache:\\n            self.write_response_cache(messages, max_tokens, text)\\n        return text\\n\"}}",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 07:43:20"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:generate_response_server"
+}

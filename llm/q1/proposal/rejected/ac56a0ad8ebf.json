@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 07:50:26",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 07:50:26",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "replace_function validation failed: Unsafe generated content blocked: use a specific exception type instead of except Exception",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "ac56a0ad8ebf",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 19223,
+    "max_tokens": 1024,
+    "prompt_hash": "23dd3fde6b3d058edc2b30b12f4badfa10d3f7ce2879133a0a27f3d8a85aefa7",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"read_function\", \"content\": \"    def read_function(self, call):\\n        try:\\n            resolved_path = self._resolve_path(call.get('path'))\\n            with open(resolved_path, 'r', encoding='utf-8') as f:\\n                source = f.read()\\n        except FileNotFoundError:\\n            raise Exception(f\\\"File not found: {resolved_path}\\\")\\n        except Exception as e:\\n            raise Exception(f\\\"Error reading file: {resolved_path} - {str(e)}\\\")\\n\\n        func_source = get_function_source(source, call.get('func_name'))\\n        if func_source is None:\\n            raise Exception(f\\\"Function '{call.get('func_name')}' not found in file: {resolved_path}\\\")\\n\\n        return f\\\"<tool_result name='read_function' status='success'>\\\\n{func_source}\\\\n</tool_result>\\\"\"}}",
+  "moved_at": "2026-05-06 07:50:26",
+  "nonce": "e85fca12",
+  "problem": "함수 읽기 도구가 대상 누락과 경로 오류를 더 명확히 보고하도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def read_function(self, call):\\n        try:\\n            resolved_path = self._resolve_path(call.get('path'))\\n            with open(resolved_path, 'r', encoding='utf-8') as f:\\n                source = f.read()\\n        except FileNotFoundError:\\n            raise Exception(f\\\"File not found: {resolved_path}\\\")\\n        except Exception as e:\\n            raise Exception(f\\\"Error reading file: {resolved_path} - {str(e)}\\\")\\n\\n        func_source = get_function_source(source, call.get('func_name'))\\n        if func_source is None:\\n            raise Exception(f\\\"Function '{call.get('func_name')}' not found in file: {resolved_path}\\\")\\n\\n        return f\\\"<tool_result name='read_function' status='success'>\\\\n{func_source}\\\\n</tool_result>\\\"\", \"func_name\": \"read_function\", \"path\": \"llm/q1/core/handlers.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 07:50:26"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:read_function"
+}

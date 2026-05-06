@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 07:04:53",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 07:06:22",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "protected target function: run_validation_suite",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "2234b8473807",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 49850,
+    "max_tokens": 1024,
+    "prompt_hash": "bf562f8105c90cf3f73d95606d1e5e2fd27c6aaac3edb24300c6afebd10b326f",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"run_validation_suite\", \"content\": \"    def run_validation_suite(self, job_path, changed_files):\\n        commands = [\\n            \\\"./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py\\\",\\n            \\\"cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --self-check\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --tool-self-test\\\",\\n            \\\"Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/core 목록 확인해라\\\\\\\"\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/core/handlers.py 파일 내 함수 호출 확인해라\\\\\\\"\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/core/analyzer.py 파일 내 함수 호출 확인해라\\\\\\\"\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/q1_server.py 파일 내 함수 호출 확인해라\\\\\\\"\\\",\\n        ]\\n        results = []\\n        for command in commands:\\n            result = self.tool_handler.execute_bash({\\\"command\\\": command})\\n            ok = \\\"status='success'\\\" in result\\n            results.append({\\\"command\\\": command, \\\"ok\\\": ok, \\\"result\\\": result})\\n        results.extend(self.verify_changed_python_imports(changed_files))\\n        tool_errors = [\\n            result for result in self.last_tool_results[-len(commands):]\\n            if re.search(r\\\"^<tool_result\\\\s+name='[^']+'\\\\s+status='error'>\\\", result, re.MULTILINE)\\n        ]\\n        return {\\n            \\\"job\\\": job_path,\\n            \\\"timestamp\\\": datetime.now().strftime(\\\"%Y-%m-%d %H:%M:%S\\\"),\\n            \\\"ok\\\": all(item[\\\"ok\\\"] for item in results) and not tool_errors,\\n            \\\"changed_files\\\": changed_files,\\n            \\\"tool_results\\\": list(self.last_tool_results[-len(commands):]),\\n            \\\"tool_errors\\\": tool_errors,\\n            \\\"results\\\": results,\\n        }\"}}",
+  "moved_at": "2026-05-06 07:06:22",
+  "nonce": "81a2fa98",
+  "problem": "반복 개선의 성공/실패 판정이 실제 런타임 결함을 더 잘 잡도록 검증 범위를 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def run_validation_suite(self, job_path, changed_files):\\n        commands = [\\n            \\\"./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py\\\",\\n            \\\"cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --self-check\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --tool-self-test\\\",\\n            \\\"Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/core 목록 확인해라\\\\\\\"\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/core/handlers.py 파일 내 함수 호출 확인해라\\\\\\\"\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/core/analyzer.py 파일 내 함수 호출 확인해라\\\\\\\"\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/q1_server.py 파일 내 함수 호출 확인해라\\\\\\\"\\\",\\n        ]\\n        results = []\\n        for command in commands:\\n            result = self.tool_handler.execute_bash({\\\"command\\\": command})\\n            ok = \\\"status='success'\\\" in result\\n            results.append({\\\"command\\\": command, \\\"ok\\\": ok, \\\"result\\\": result})\\n        results.extend(self.verify_changed_python_imports(changed_files))\\n        tool_errors = [\\n            result for result in self.last_tool_results[-len(commands):]\\n            if re.search(r\\\"^<tool_result\\\\s+name='[^']+'\\\\s+status='error'>\\\", result, re.MULTILINE)\\n        ]\\n        return {\\n            \\\"job\\\": job_path,\\n            \\\"timestamp\\\": datetime.now().strftime(\\\"%Y-%m-%d %H:%M:%S\\\"),\\n            \\\"ok\\\": all(item[\\\"ok\\\"] for item in results) and not tool_errors,\\n            \\\"changed_files\\\": changed_files,\\n            \\\"tool_results\\\": list(self.last_tool_results[-len(commands):]),\\n            \\\"tool_errors\\\": tool_errors,\\n            \\\"results\\\": results,\\n        }\", \"func_name\": \"run_validation_suite\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 07:06:22"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:run_validation_suite"
+}

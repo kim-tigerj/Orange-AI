@@ -1,0 +1,78 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 06:11:39",
+    "changed_files": [],
+    "note": "DONE_NO_CHANGE proposal accepted without file writes",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 06:10:16",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 06:11:39",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "23e4604d8309",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 5453,
+    "max_tokens": 1024,
+    "prompt_hash": "78c6dd5c2616a9424f8a3c231d1f2b4c1f7263ac43059a0d2896c56cce77138a",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "DONE_NO_CHANGE",
+  "moved_at": "2026-05-06 06:11:39",
+  "nonce": "9c08e884",
+  "problem": "서버 상태 확인이 반복 루프 진입 전 병목과 오류 원인을 더 빠르게 보여주도록 개선한다.",
+  "proposed_tool_call": "DONE_NO_CHANGE",
+  "rationale": "model self-play proposal parsed as no_change (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:server_health"
+}

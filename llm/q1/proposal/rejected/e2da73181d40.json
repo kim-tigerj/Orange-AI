@@ -1,0 +1,87 @@
+{
+  "application": {
+    "applied_at": "2026-05-05 22:50:15",
+    "changed_files": [
+      "llm/q1/core/handlers.py"
+    ],
+    "error": "<tool_result name='replace_function' status='error'>Unsafe generated content blocked: use a specific exception type instead of except Exception</tool_result>",
+    "rolled_back_files": [
+      "llm/q1/core/handlers.py"
+    ],
+    "validation_ok": false
+  },
+  "created_at": "2026-05-05 22:50:13",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 22:50:14",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "e2da73181d40",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 1,
+    "max_tokens": 1024,
+    "prompt_hash": "31747f444742ebee15b7a7c2896c2da76c5466fcdfbecbb9b26b6819b070e030",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"list_directory\", \"content\": \"    def list_directory(self, call):\\n        target = self._resolve_path(call.get('path', '.'))\\n        if not os.path.exists(target):\\n            raise Exception(f\\\"Path not found: {target}\\\")\\n        res = []\\n        try:\\n            for f in os.listdir(target):\\n                p = os.path.join(target, f)\\n                is_file = os.path.isfile(p)\\n                size = os.path.getsize(p) if is_file else 0\\n                type_ = 'file' if is_file else 'directory'\\n                res.append({\\\"name\\\": f, \\\"size\\\": size, \\\"type\\\": type_})\\n        except PermissionError:\\n            raise Exception(f\\\"Permission denied: {target}\\\")\\n        except Exception as e:\\n            raise Exception(f\\\"An error occurred: {str(e)}\\\")\\n        return f\\\"<tool_result name='list_directory' status='success'>\\\\n{json.dumps(res)}\\\\n</tool_result>\\\"\"}}",
+  "moved_at": "2026-05-05 22:50:15",
+  "nonce": "5bf426a2",
+  "problem": "디렉터리 목록 도구가 누락 경로와 파일/디렉터리 구분을 더 안정적으로 처리하도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"list_directory\", \"content\": \"    def list_directory(self, call):\\n        target = self._resolve_path(call.get('path', '.'))\\n        if not os.path.exists(target):\\n            raise Exception(f\\\"Path not found: {target}\\\")\\n        res = []\\n        try:\\n            for f in os.listdir(target):\\n                p = os.path.join(target, f)\\n                is_file = os.path.isfile(p)\\n                size = os.path.getsize(p) if is_file else 0\\n                type_ = 'file' if is_file else 'directory'\\n                res.append({\\\"name\\\": f, \\\"size\\\": size, \\\"type\\\": type_})\\n        except PermissionError:\\n            raise Exception(f\\\"Permission denied: {target}\\\")\\n        except Exception as e:\\n            raise Exception(f\\\"An error occurred: {str(e)}\\\")\\n        return f\\\"<tool_result name='list_directory' status='success'>\\\\n{json.dumps(res)}\\\\n</tool_result>\\\"\"}}",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "<tool_result name='replace_function' status='error'>Unsafe generated content blocked: use a specific exception type instead of except Exception</tool_result>",
+    "rejected_at": "2026-05-05 22:50:15"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:list_directory"
+}

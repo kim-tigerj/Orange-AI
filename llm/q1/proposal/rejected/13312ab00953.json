@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 06:47:10",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 06:47:10",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "13312ab00953",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 18860,
+    "max_tokens": 1024,
+    "prompt_hash": "1d80b6f87837cc0e608d8a17fd2a1a6689861687a3ea21ece2981b5b24a9410d",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"archive_job\", \"content\": \"    def archive_job(self, job_path, status=\\\\\"done\\\\\"):\\n        archive_dir = os.path.join(PROJECT_ROOT, \\\\\"llm\\\\\", \\\\\"q1\\\\\", \\\\\"job\\\\\", status)\\n        os.makedirs(archive_dir, exist_ok=True)\\n        name = os.path.basename(job_path)\\n        base, ext = os.path.splitext(name)\\n        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')\\n        target = os.path.join(archive_dir, f\\\\\"{base}_{timestamp}{ext}\\\\\")\\n        counter = 1\\n        while os.path.exists(target):\\n            target = os.path.join(archive_dir, f\\\\\"{base}_{timestamp}_{counter}{ext}\\\\\")\\n            counter += 1\\n        os.replace(job_path, target)\"}}",
+  "moved_at": "2026-05-06 06:47:10",
+  "nonce": "d7c72611",
+  "problem": "완료/실패 job 이동 시 이름 충돌과 재시도 판단을 더 안정적으로 처리하도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"archive_job\", \"content\": \"    def archive_job(self, job_path, status=\\\\\"done\\\\\"):\\n        archive_dir = os.path.join(PROJECT_ROOT, \\\\\"llm\\\\\", \\\\\"q1\\\\\", \\\\\"job\\\\\", status)\\n        os.makedirs(archive_dir, exist_ok=True)\\n        name = os.path.basename(job_path)\\n        base, ext = os.path.splitext(name)\\n        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')\\n        target = os.path.join(archive_dir, f\\\\\"{base}_{timestamp}{ext}\\\\\")\\n        counter = 1\\n        while os.path.exists(target):\\n            target = os.path.join(archive_dir, f\\\\\"{base}_{timestamp}_{counter}{ext}\\\\\")\\n            counter += 1\\n        os.replace(job_path, target)\"}}",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 06:47:10"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:archive_job"
+}

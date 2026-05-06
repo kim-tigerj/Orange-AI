@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 01:32:57",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 01:32:57",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "798fac3c33d7",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 26844,
+    "max_tokens": 1024,
+    "prompt_hash": "acb064b10f63ea69981f3bba4f687fc781122d70d5afa629a51658fccc39b8c6",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"write_file\", \"content\": \"    def write_file(self, call):\\n        full_path = self._resolve_path(call.get('path'))\\n        self._ensure_write_allowed(full_path)\\n        start, end, content = call.get('start_line'), call.get('end_line'), call.get('content')\\n        if content is None:\\n            raise ValueError(\\\"content is required\\\")\\n        content = self._strip_code_fence(content)\\n        self._reject_unsafe_generated_content(call.get('path'), content)\\n        if start:\\n            with open(full_path, 'r', encoding='utf-8') as f:\\n                lines = f.readlines()\\n            lines[int(start)-1:int(end) if end else int(start)] = content.splitlines(keepends=True)\\n            updated = \\\"\".join(lines)\\n        else:\\n            updated = content\\n        if call.get('path').endswith(\\'.py\\'):\\n            valid, err = self._validate_python_with_context(updated)\\n            if not valid:\\n                raise ValueError(f\\\"Python validation failed: {err}\\\")\\n        with open(full_path, 'w', encoding='utf-8') as f:\\n            f.write(updated)\\n        return \\\"<tool_result name='write_file' status='success'>기록 완료</tool_result>\\\"\"}}",
+  "moved_at": "2026-05-06 01:32:57",
+  "nonce": "19aac9ca",
+  "problem": "파일 쓰기 도구가 content 누락과 Python 검증 오류를 더 안전하게 처리하도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"write_file\", \"content\": \"    def write_file(self, call):\\n        full_path = self._resolve_path(call.get('path'))\\n        self._ensure_write_allowed(full_path)\\n        start, end, content = call.get('start_line'), call.get('end_line'), call.get('content')\\n        if content is None:\\n            raise ValueError(\\\"content is required\\\")\\n        content = self._strip_code_fence(content)\\n        self._reject_unsafe_generated_content(call.get('path'), content)\\n        if start:\\n            with open(full_path, 'r', encoding='utf-8') as f:\\n                lines = f.readlines()\\n            lines[int(start)-1:int(end) if end else int(start)] = content.splitlines(keepends=True)\\n            updated = \\\"\".join(lines)\\n        else:\\n            updated = content\\n        if call.get('path').endswith(\\'.py\\'):\\n            valid, err = self._validate_python_with_context(updated)\\n            if not valid:\\n                raise ValueError(f\\\"Python validation failed: {err}\\\")\\n        with open(full_path, 'w', encoding='utf-8') as f:\\n            f.write(updated)\\n        return \\\"<tool_result name='write_file' status='success'>기록 완료</tool_result>\\\"\"}}",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 01:32:57"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:write_file"
+}

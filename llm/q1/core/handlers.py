@@ -221,6 +221,38 @@ class ToolHandler:
             if 'name' not in call:
                 call['name'] = call.get('function') or call.get('type')
             if 'name' in call: calls.append(call)
+        hermes_pattern = re.compile(r'<tool_call>\s*(\{.*?\})\s*</tool_call>', re.DOTALL)
+        for match in hermes_pattern.finditer(text):
+            try:
+                parsed = json.loads(match.group(1))
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(parsed, dict):
+                continue
+            name = parsed.get("name")
+            arguments = parsed.get("arguments")
+            if not isinstance(name, str) or not isinstance(arguments, dict):
+                continue
+            call = dict(arguments)
+            call["name"] = name
+            calls.append(call)
+        if not calls:
+            candidate = text.strip()
+            fence_match = re.match(r'^```(?:json)?\s*(.*?)\s*```$', candidate, re.DOTALL)
+            if fence_match:
+                candidate = fence_match.group(1).strip()
+            if candidate.startswith('{') and candidate.endswith('}'):
+                try:
+                    parsed = json.loads(candidate)
+                except json.JSONDecodeError:
+                    parsed = None
+                if isinstance(parsed, dict):
+                    name = parsed.get("name")
+                    arguments = parsed.get("arguments")
+                    if isinstance(name, str) and isinstance(arguments, dict):
+                        call = dict(arguments)
+                        call["name"] = name
+                        calls.append(call)
         return calls
 
     def execute_tools(self, response):
@@ -249,8 +281,10 @@ class ToolHandler:
             if not functions:
                 return "<tool_result name='list_functions' status='success'>No functions found.</tool_result>"
             return f"<tool_result name='list_functions' status='success'>\n{chr(10).join(functions)}\n</tool_result>"
-        except Exception as e:
-            return f"<tool_result name='list_functions' status='error'>Failed to read file: {str(e)}</tool_result>"
+        except FileNotFoundError:
+            return "<tool_result name='list_functions' status='error'>File not found.</tool_result>"
+        except IOError:
+            return "<tool_result name='list_functions' status='error'>Failed to read file.</tool_result>"
     def read_function(self, call):
         try:
             with open(self._resolve_path(call.get('path')), 'r', encoding='utf-8') as f:
@@ -346,7 +380,7 @@ class ToolHandler:
                 if not valid: raise Exception(err)
             with open(full_path, 'w', encoding='utf-8') as f: f.write(updated)
             return "<tool_result name='replace' status='success'>수정 완료</tool_result>"
-        raise Exception(f"Unique match failed (count: {len(hits)}). Expected 1 match but found {len(hits)} matches.")
+        raise Exception(f"Unique match failed (count: {len(hits)}). Expected 1 match but found {len(hits)} matches. Matches found in lines: {', '.join(map(str, hits))}")
     def read_file(self, call):
         path = self._resolve_path(call.get('path'))
         start_line = int(call.get('start_line', 1))
@@ -403,11 +437,14 @@ class ToolHandler:
             )
     def list_directory(self, call):
         target = self._resolve_path(call.get('path', '.'))
-        if not os.path.exists(target): raise Exception(f"Path not found: {target}")
+        if not os.path.exists(target):
+            raise Exception(f"Path not found: {target}")
         res = []
         for f in os.listdir(target):
             p = os.path.join(target, f)
             is_file = os.path.isfile(p)
-            res.append({"name": f, "size": os.path.getsize(p) if is_file else 0, "type": "file" if is_file else "directory"})
+            size = os.path.getsize(p) if is_file else 0
+            type_ = 'file' if is_file else 'directory'
+            res.append({"name": f, "size": size, "type": type_})
         return f"<tool_result name='list_directory' status='success'>\n{json.dumps(res)}\n</tool_result>"
     def restart(self, call): sys.exit(0)

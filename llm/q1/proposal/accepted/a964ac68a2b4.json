@@ -1,0 +1,124 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 12:54:23",
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "tool_result": "<tool_result name='replace_function' status='success'>교체 완료</tool_result>",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 12:54:21",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 12:54:22",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "a964ac68a2b4",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 27006,
+    "max_tokens": 1024,
+    "prompt_hash": "47fe703ce53e39145263725acc8f9a46f75922a938fe65aea23190949909cacc",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"archive_job\", \"content\": \"    def archive_job(self, job_path, status=\\\"done\\\"):\\n        archive_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", status)\\n        os.makedirs(archive_dir, exist_ok=True)\\n        name = os.path.basename(job_path)\\n        base, ext = os.path.splitext(name)\\n        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')\\n        target = os.path.join(archive_dir, f\\\"{base}_{timestamp}{ext}\\\")\\n        counter = 0\\n        while os.path.exists(target):\\n            counter += 1\\n            target = os.path.join(archive_dir, f\\\"{base}_{timestamp}_{counter}{ext}\\\")\\n        try:\\n            os.replace(job_path, target)\\n        except FileExistsError:\\n            # In case of a race condition, retry with a new timestamp\\n            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')\\n            target = os.path.join(archive_dir, f\\\"{base}_{timestamp}{ext}\\\")\\n            counter = 0\\n            while os.path.exists(target):\\n                counter += 1\\n                target = os.path.join(archive_dir, f\\\"{base}_{timestamp}_{counter}{ext}\\\")\\n            os.replace(job_path, target)\"}}",
+  "moved_at": "2026-05-06 12:54:23",
+  "nonce": "a8e80c74",
+  "problem": "완료/실패 job 이동 시 이름 충돌과 재시도 판단을 더 안정적으로 처리하도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def archive_job(self, job_path, status=\\\"done\\\"):\\n        archive_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", status)\\n        os.makedirs(archive_dir, exist_ok=True)\\n        name = os.path.basename(job_path)\\n        base, ext = os.path.splitext(name)\\n        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')\\n        target = os.path.join(archive_dir, f\\\"{base}_{timestamp}{ext}\\\")\\n        counter = 0\\n        while os.path.exists(target):\\n            counter += 1\\n            target = os.path.join(archive_dir, f\\\"{base}_{timestamp}_{counter}{ext}\\\")\\n        try:\\n            os.replace(job_path, target)\\n        except FileExistsError:\\n            # In case of a race condition, retry with a new timestamp\\n            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')\\n            target = os.path.join(archive_dir, f\\\"{base}_{timestamp}{ext}\\\")\\n            counter = 0\\n            while os.path.exists(target):\\n                counter += 1\\n                target = os.path.join(archive_dir, f\\\"{base}_{timestamp}_{counter}{ext}\\\")\\n            os.replace(job_path, target)\", \"func_name\": \"archive_job\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:archive_job",
+  "validation_report": {
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "job": "proposal:a964ac68a2b4",
+    "ok": true,
+    "results": [
+      {
+        "command": "./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 proposal autopilot\ncycle 1/1\nq1 proposal autopilot summary\ncycles: 1\napplied_or_accepted: 0\nfailed_or_rejected: 0\nkind_counts: {}\nself_play_model_one: id=skip-test target=llm/q1/q1.py:compact_logs kind=skipped \nsource_chars=6001\n[2026-05-06 12:54:22] JOB 3021a9dff59c queued request_id=None queue_depth=1\n[2026-05-06 12:54:22] JOB 3021a9dff59c running\n[2026-05-06 12:54:22] JOB 3021a9dff59c done elapsed_seconds=0.02\n[2026-05-06 12:54:22] JOB 62ff18bd8294 cache hit request_id=req1\n[2026-05-06 12:54:22] REQUEST #req1 stream done job_id=62ff18bd8294 cached=True elapsed_seconds=0.0 counts total=1 generate=1 health=0 jobs=0 errors=0 inference completed=1 cached=1 avg_seconds=0.02 total_seconds=0.02\n[2026-05-06 12:54:22] JOB dc0600525cef queued request_id=r1 queue_depth=1\n[2026-05-06 12:54:22] JOB dc0600525cef running\n[2026-05-06 12:54:22] JOB dc0600525cef joined duplicate request_id=r2\n[2026-05-06 12:54:23] JOB dc0600525cef done elapsed_seconds=0.10\n[2026-05-06 12:54:23] JOB 1d12fad23ab7 qu\nSTDERR: ..........................................\n----------------------------------------------------------------------\nRan 42 tests in 0.371s\n\nOK\n\nOUTPUT_LENGTH: 1584\nERROR_LENGTH: 141\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --self-check",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: project_root: /Users/tigerj/Work/OrangeLabs/Orange/Orange-AI -> OK\npersona: loaded -> OK\nread_file: llm/q1/q1.py -> OK\nlist_directory: llm/q1/core -> OK\nallowed_tool_guard: disallowed read_function -> OK\n\nSTDERR: \nOUTPUT_LENGTH: 204\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --tool-self-test",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 tool self-test\nparse_tool_calls_roundtrip: OK\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='error'>Replacement function name \nmismatch: expected target, got renamed</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction decorators</tool_result>\nreplace_function_signature_guard: OK\nreplace_function_decorator_guard: OK\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction return flow</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction yield flow</tool_result>\nreplace_function_return_guard: OK\nreplace_function_yield_guard: OK\n<tool_result name='replace_function' status='error'>Post-splice verification \nfailed: function topology changed</tool_result>\nreplace_function_topology_guard: OK\n<tool_result name='execute_b\nSTDERR: \nOUTPUT_LENGTH: 1319\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \"llm/q1/core 목록 확인해라\"",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: 직접 실행 결과:\n<tool_result name='list_directory' status='success'>\n[{\"name\": \"context_manager.py\", \"size\": 0, \"type\": \"file\"}, {\"name\": \n\"analyzer.py\", \"size\": 674, \"type\": \"file\"}, {\"name\": \"session_manager.py\", \n\"size\": 0, \"type\": \"file\"}, {\"name\": \"handlers.py\", \"size\": 23430, \"type\": \n\"file\"}]\n</tool_result>\n\nSTDERR: \nOUTPUT_LENGTH: 310\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/venv/bin/python -c importlib.import_module q1",
+        "ok": true,
+        "result": "<tool_result name='import_check' status='success'>\nMODULE: q1\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \n</tool_result>"
+      }
+    ],
+    "timestamp": "2026-05-06 12:54:23",
+    "tool_errors": [],
+    "tool_results": [
+      "<tool_result name='replace_function' status='success'>교체 완료</tool_result>"
+    ]
+  }
+}

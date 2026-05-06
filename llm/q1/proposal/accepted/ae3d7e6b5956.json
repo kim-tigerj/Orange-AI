@@ -1,0 +1,124 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 07:03:47",
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "tool_result": "<tool_result name='replace_function' status='success'>교체 완료</tool_result>",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 07:01:17",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 07:03:45",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "ae3d7e6b5956",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 13398,
+    "max_tokens": 1024,
+    "prompt_hash": "12018f923631a075d18ec167ca0f2a2aea476a2ab70c50783f4551be90d6892e",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"cycle_once\", \"content\": \"    def cycle_once(self, limit, max_no_change=0, compact_logs=False):\\n        console.print('[bold]q1 cycle once[/bold]')\\n        self.server_health()\\n        self.archive_skipped()\\n        self.dry_run_auto(limit)\\n        if self.auto_improve(limit, max_no_change=max_no_change):\\n            self.validate()\\n        if compact_logs:\\n            self.compact_logs()\\n        self.print_status()\\n\"}}",
+  "moved_at": "2026-05-06 07:03:47",
+  "nonce": "878080ad",
+  "problem": "한 번의 자율 반복에서 시간 낭비와 불필요한 모델 호출을 줄이도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def cycle_once(self, limit, max_no_change=0, compact_logs=False):\\n        console.print('[bold]q1 cycle once[/bold]')\\n        self.server_health()\\n        self.archive_skipped()\\n        self.dry_run_auto(limit)\\n        if self.auto_improve(limit, max_no_change=max_no_change):\\n            self.validate()\\n        if compact_logs:\\n            self.compact_logs()\\n        self.print_status()\\n\", \"func_name\": \"cycle_once\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:cycle_once",
+  "validation_report": {
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "job": "proposal:ae3d7e6b5956",
+    "ok": true,
+    "results": [
+      {
+        "command": "./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 proposal autopilot\ncycle 1/1\nq1 proposal autopilot summary\ncycles: 1\napplied_or_accepted: 0\nfailed_or_rejected: 0\nkind_counts: {}\n[2026-05-06 07:03:46] JOB b6d8577a6934 queued request_id=None queue_depth=1\n[2026-05-06 07:03:46] JOB b6d8577a6934 running\n[2026-05-06 07:03:46] JOB b6d8577a6934 done elapsed_seconds=0.17\n[2026-05-06 07:03:46] JOB c62fac272401 cache hit request_id=req1\n[2026-05-06 07:03:46] REQUEST #req1 stream done job_id=c62fac272401 cached=True elapsed_seconds=0.0 counts total=1 generate=1 health=0 jobs=0 errors=0 inference completed=1 cached=1 avg_seconds=0.17 total_seconds=0.17\n[2026-05-06 07:03:46] JOB 14ab6d0d87ec queued request_id=r1 queue_depth=1\n[2026-05-06 07:03:46] JOB 14ab6d0d87ec running\n[2026-05-06 07:03:46] JOB 14ab6d0d87ec joined duplicate request_id=r2\n[2026-05-06 07:03:46] JOB 14ab6d0d87ec done elapsed_seconds=0.16\n[2026-05-06 07:03:46] JOB 06eb082f12ff queued request_id=None queue_depth=1\n[2026-05-06 07:03:46] JOB 06eb082f12ff running\n[2026-05-06 07:03\nSTDERR: .....................................\n----------------------------------------------------------------------\nRan 37 tests in 0.654s\n\nOK\n\nOUTPUT_LENGTH: 1485\nERROR_LENGTH: 136\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --self-check",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: project_root: /Users/tigerj/Work/OrangeLabs/Orange/Orange-AI -> OK\npersona: loaded -> OK\nread_file: llm/q1/q1.py -> OK\nlist_directory: llm/q1/core -> OK\nallowed_tool_guard: disallowed read_function -> OK\n\nSTDERR: \nOUTPUT_LENGTH: 204\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --tool-self-test",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 tool self-test\nparse_tool_calls_roundtrip: OK\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='error'>Replacement function name \nmismatch: expected target, got renamed</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction decorators</tool_result>\nreplace_function_signature_guard: OK\nreplace_function_decorator_guard: OK\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction return flow</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction yield flow</tool_result>\nreplace_function_return_guard: OK\nreplace_function_yield_guard: OK\n<tool_result name='replace_function' status='error'>Post-splice verification \nfailed: function topology changed</tool_result>\nreplace_function_topology_guard: OK\n<tool_result name='execute_b\nSTDERR: \nOUTPUT_LENGTH: 1319\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \"llm/q1/core 목록 확인해라\"",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: 직접 실행 결과:\n<tool_result name='list_directory' status='success'>\n[{\"name\": \"context_manager.py\", \"size\": 0, \"type\": \"file\"}, {\"name\": \n\"analyzer.py\", \"size\": 674, \"type\": \"file\"}, {\"name\": \"session_manager.py\", \n\"size\": 0, \"type\": \"file\"}, {\"name\": \"handlers.py\", \"size\": 23300, \"type\": \n\"file\"}]\n</tool_result>\n\nSTDERR: \nOUTPUT_LENGTH: 310\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/venv/bin/python -c importlib.import_module q1",
+        "ok": true,
+        "result": "<tool_result name='import_check' status='success'>\nMODULE: q1\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \n</tool_result>"
+      }
+    ],
+    "timestamp": "2026-05-06 07:03:47",
+    "tool_errors": [],
+    "tool_results": [
+      "<tool_result name='replace_function' status='success'>교체 완료</tool_result>"
+    ]
+  }
+}

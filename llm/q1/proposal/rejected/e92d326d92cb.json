@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 08:12:21",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 08:12:21",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "e92d326d92cb",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 80412,
+    "max_tokens": 1024,
+    "prompt_hash": "0f985b313db302a4ecab95241ed1c0ebaeeb93f80e4e6d1bd7be9bca08af0d36",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_target_function\", \"content\": \"    def extract_target_function(self, job_text):\\n        matches = re.findall(r\\\"^-\\\\s*`([^`]+:[\\\\w_]+)`\\\\s*$\\\", job_text, re.MULTILINE)\\n        if matches:\\n            # 중복된 함수를 제거하고 첫 번째 함수 반환\\n            unique_matches = list(dict.fromkeys(matches))\\n            # 잘못된 skip을 줄이기 위해 첫 번째 함수만 반환\\n            return unique_matches[0] if unique_matches else None\\n        else:\\n            # 로깅 또는 추가적인 처리 로직 추가 가능\\n            logging.warning(\\\"No target function found in job_text: %s\\\", job_text)\\n            return None\\n\\n        # 추가로, 함수명이 올바른 형식인지 검증\\n        for match in unique_matches:\\n            if not re.match(r\\\"^[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*$\\\", match):\\n                logging.warning(\\\"Invalid function format found: %s\\\", match)\\n                return None\\n        return unique_matches[0] if unique_matches else None\"}}\n<|im_start|><|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_target_function\", \"content\": \"    def extract_target_function(self, job_text):\\n        matches = re.findall(r\\\"^-\\\\s*`([^`]+:[\\\\w_]+)`\\\\s*$\\\", job_text, re.MULTILINE)\\n        if matches:\\n            # 중복된 함수를 제거하고 첫 번째 함수 반환\\n            unique_matches = list(dict.fromkeys(matches))\\n            # 잘못된 skip을 줄이기 위해 첫 번째 함수만 반환\\n            if unique_matches:\\n                # 추가로, 함수명이 올바른 형식인지 검증\\n                if re.match(r\\\"^[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*$\\\", unique_matches[0]):\\n                    return unique_matches[0]\\n                else:\\n                    logging.warning(\\\"Invalid function format found: %s\\\", unique_matches[0])\\n                    return None\\n            return None\\n        else:\\n            # 로깅 또는 추가적인 처리 로직 추가 가능\\n            logging.warning(\\\"No target function found in job_text: %s\\\", job_text)\\n            return None\"}}\n<|im_start|><|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_target_function\", \"content\": \"    def extract_target_function(self, job_text):\\n        matches = re.findall(r\\\"^-\\\\s*`([^`]+:[\\\\w_]+)`\\\\s*$\\\", job_text, re.MULTILINE)\\n        if matches:\\n            # 중복된 함수를 제거하고 첫 번째 함수 반환\\n            unique_matches = list(dict.fromkeys(matches))\\n            if unique_matches:\\n                # 추가로, 함수명이 올바른 형식인지 검증\\n                for match in unique_matches:\\n                    if re.match(r\\\"^[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*$\\\", match):\\n                        return match\\n                    else:\\n                        logging.warning(\\\"Invalid function format found: %s\\\", match)\\n            return None\\n        else:\\n            # 로깅 또는 추가적인 처리 로직 추가 가능\\n            logging.warning(\\\"No target function found in job_text: %s\\\", job_text)\\n            return None\"}}\n<|im_start|><|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_target_function\", \"content\": \"    def extract_target_function(self, job_text):\\n        matches = re.findall(r\\\"^-\\\\s*`([^`]+:[\\\\w_]+)`\\\\s*$\\\", job_text, re.MULTILINE)\\n        if matches:\\n            # 중복된 함수를 제거하고 첫 번째 함수 반환\\n            unique_matches = list(dict.fromkeys(matches))\\n            for match in unique_matches:\\n                if re.match(r\\\"^[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*$\\\", match):\\n                    return match\\n                else:\\n                    logging.warning(\\\"Invalid function format found: %s\\\", match)\\n            return None\\n        else:\\n            # 로깅 또는",
+  "moved_at": "2026-05-06 08:12:21",
+  "nonce": "bb60393e",
+  "problem": "job 문서에서 대상 함수를 더 안정적으로 추출해 잘못된 skip을 줄이도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_target_function\", \"content\": \"    def extract_target_function(self, job_text):\\n        matches = re.findall(r\\\"^-\\\\s*`([^`]+:[\\\\w_]+)`\\\\s*$\\\", job_text, re.MULTILINE)\\n        if matches:\\n            # 중복된 함수를 제거하고 첫 번째 함수 반환\\n            unique_matches = list(dict.fromkeys(matches))\\n            # 잘못된 skip을 줄이기 위해 첫 번째 함수만 반환\\n            return unique_matches[0] if unique_matches else None\\n        else:\\n            # 로깅 또는 추가적인 처리 로직 추가 가능\\n            logging.warning(\\\"No target function found in job_text: %s\\\", job_text)\\n            return None\\n\\n        # 추가로, 함수명이 올바른 형식인지 검증\\n        for match in unique_matches:\\n            if not re.match(r\\\"^[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*$\\\", match):\\n                logging.warning(\\\"Invalid function format found: %s\\\", match)\\n                return None\\n        return unique_matches[0] if unique_matches else None\"}}\n<|im_start|><|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_target_function\", \"content\": \"    def extract_target_function(self, job_text):\\n        matches = re.findall(r\\\"^-\\\\s*`([^`]+:[\\\\w_]+)`\\\\s*$\\\", job_text, re.MULTILINE)\\n        if matches:\\n            # 중복된 함수를 제거하고 첫 번째 함수 반환\\n            unique_matches = list(dict.fromkeys(matches))\\n            # 잘못된 skip을 줄이기 위해 첫 번째 함수만 반환\\n            if unique_matches:\\n                # 추가로, 함수명이 올바른 형식인지 검증\\n                if re.match(r\\\"^[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*$\\\", unique_matches[0]):\\n                    return unique_matches[0]\\n                else:\\n                    logging.warning(\\\"Invalid function format found: %s\\\", unique_matches[0])\\n                    return None\\n            return None\\n        else:\\n            # 로깅 또는 추가적인 처리 로직 추가 가능\\n            logging.warning(\\\"No target function found in job_text: %s\\\", job_text)\\n            return None\"}}\n<|im_start|><|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_target_function\", \"content\": \"    def extract_target_function(self, job_text):\\n        matches = re.findall(r\\\"^-\\\\s*`([^`]+:[\\\\w_]+)`\\\\s*$\\\", job_text, re.MULTILINE)\\n        if matches:\\n            # 중복된 함수를 제거하고 첫 번째 함수 반환\\n            unique_matches = list(dict.fromkeys(matches))\\n            if unique_matches:\\n                # 추가로, 함수명이 올바른 형식인지 검증\\n                for match in unique_matches:\\n                    if re.match(r\\\"^[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*$\\\", match):\\n                        return match\\n                    else:\\n                        logging.warning(\\\"Invalid function format found: %s\\\", match)\\n            return None\\n        else:\\n            # 로깅 또는 추가적인 처리 로직 추가 가능\\n            logging.warning(\\\"No target function found in job_text: %s\\\", job_text)\\n            return None\"}}\n<|im_start|><|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_target_function\", \"content\": \"    def extract_target_function(self, job_text):\\n        matches = re.findall(r\\\"^-\\\\s*`([^`]+:[\\\\w_]+)`\\\\s*$\\\", job_text, re.MULTILINE)\\n        if matches:\\n            # 중복된 함수를 제거하고 첫 번째 함수 반환\\n            unique_matches = list(dict.fromkeys(matches))\\n            for match in unique_matches:\\n                if re.match(r\\\"^[a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*$\\\", match):\\n                    return match\\n                else:\\n                    logging.warning(\\\"Invalid function format found: %s\\\", match)\\n            return None\\n        else:\\n            # 로깅 또는",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 08:12:21"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:extract_target_function"
+}

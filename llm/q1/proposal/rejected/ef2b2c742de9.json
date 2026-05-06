@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 09:45:12",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 09:45:13",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "protected target function: execute_bash",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "ef2b2c742de9",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 33445,
+    "max_tokens": 1024,
+    "prompt_hash": "f4313951f94682e360e0440f0bb03bb427897ed4b62cfa8fde9985d789fe8e9b",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"execute_bash\", \"content\": \"    def execute_bash(self, call):\\n        command = call.get('command')\\n        if not command:\\n            raise Exception(\\\"command is required\\\")\\n        try:\\n            res = subprocess.run(\\n                command, \\n                shell=True, \\n                capture_output=True, \\n                text=True, \\n                cwd=self.project_root, \\n                timeout=60  # Set timeout to 60 seconds\\n            )\\n            status = \\\"success\\\" if res.returncode == 0 else \\\"error\\\"\\n            return (\\n                f\\\"<tool_result name='execute_bash' status='{status}'>\\\\n\\\"\\n                f\\\"RETURN_CODE: {res.returncode}\\\\n\\\"\\n                f\\\"STDOUT: {res.stdout[:1000]}\\\\n\\\"  # Limit output to 1000 characters\\n                f\\\"STDERR: {res.stderr[:1000]}\\\\n\\\"  # Limit output to 1000 characters\\n                f\\\"OUTPUT_LENGTH: {len(res.stdout)}\\\\n\\\"\\n                f\\\"ERROR_LENGTH: {len(res.stderr)}\\\\n\\\"\\n                f\\\"TIMEOUT: False\\\\n\\\"\\n                \\\"</tool_result>\\\"\\n            )\\n        except subprocess.TimeoutExpired:\\n            return (\\n                \\\"<tool_result name='execute_bash' status='error'>\\\\n\\\"\\n                \\\"RETURN_CODE: -1\\\\n\\\"\\n                \\\"STDOUT: \\\\n\\\"\\n                \\\"STDERR: Command timed out\\\\n\\\"\\n                \\\"OUTPUT_LENGTH: 0\\\\n\\\"\\n                \\\"ERROR_LENGTH: 0\\\\n\\\"\\n                \\\"TIMEOUT: True\\\\n\\\"\\n                \\\"</tool_result>\\\"\\n            )\"}}",
+  "moved_at": "2026-05-06 09:45:13",
+  "nonce": "ddf2af71",
+  "problem": "명령 실행 도구가 timeout과 출력 길이 정보를 더 명확히 남기도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def execute_bash(self, call):\\n        command = call.get('command')\\n        if not command:\\n            raise Exception(\\\"command is required\\\")\\n        try:\\n            res = subprocess.run(\\n                command, \\n                shell=True, \\n                capture_output=True, \\n                text=True, \\n                cwd=self.project_root, \\n                timeout=60  # Set timeout to 60 seconds\\n            )\\n            status = \\\"success\\\" if res.returncode == 0 else \\\"error\\\"\\n            return (\\n                f\\\"<tool_result name='execute_bash' status='{status}'>\\\\n\\\"\\n                f\\\"RETURN_CODE: {res.returncode}\\\\n\\\"\\n                f\\\"STDOUT: {res.stdout[:1000]}\\\\n\\\"  # Limit output to 1000 characters\\n                f\\\"STDERR: {res.stderr[:1000]}\\\\n\\\"  # Limit output to 1000 characters\\n                f\\\"OUTPUT_LENGTH: {len(res.stdout)}\\\\n\\\"\\n                f\\\"ERROR_LENGTH: {len(res.stderr)}\\\\n\\\"\\n                f\\\"TIMEOUT: False\\\\n\\\"\\n                \\\"</tool_result>\\\"\\n            )\\n        except subprocess.TimeoutExpired:\\n            return (\\n                \\\"<tool_result name='execute_bash' status='error'>\\\\n\\\"\\n                \\\"RETURN_CODE: -1\\\\n\\\"\\n                \\\"STDOUT: \\\\n\\\"\\n                \\\"STDERR: Command timed out\\\\n\\\"\\n                \\\"OUTPUT_LENGTH: 0\\\\n\\\"\\n                \\\"ERROR_LENGTH: 0\\\\n\\\"\\n                \\\"TIMEOUT: True\\\\n\\\"\\n                \\\"</tool_result>\\\"\\n            )\", \"func_name\": \"execute_bash\", \"path\": \"llm/q1/core/handlers.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 09:45:13"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:execute_bash"
+}

@@ -1,0 +1,141 @@
+{
+  "application": {
+    "applied_at": "2026-05-05 22:50:34",
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "rolled_back_files": [
+      "llm/q1/q1.py"
+    ],
+    "tool_result": "<tool_result name='replace_function' status='success'>교체 완료</tool_result>",
+    "validation_ok": false
+  },
+  "created_at": "2026-05-05 22:50:32",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 22:50:32",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "c1090c4a6584",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 1,
+    "max_tokens": 1024,
+    "prompt_hash": "2bb31d94c197e9b8d59c572d2a3dc7737388554405a77f86222aeb16f4ace6f3",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"run_validation_suite\", \"content\": \"    def run_validation_suite(self, job_path, changed_files):\\n        commands = [\\n            \\\"./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py\\\",\\n            \\\"cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --self-check\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --tool-self-test\\\",\\n            \\\"Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/core 목록 확인해라\\\\\\\"\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --check-runtime-errors\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --check-memory-leaks\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --check-thread-safety\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --check-data-consistency\\\",\\n        ]\\n        results = []\\n        for command in commands:\\n            result = self.tool_handler.execute_bash({\\\"command\\\": command})\\n            ok = \\\"status='success'\\\" in result\\n            results.append({\\\"command\\\": command, \\\"ok\\\": ok, \\\"result\\\": result})\\n        results.extend(self.verify_changed_python_imports(changed_files))\\n        tool_errors = [\\n            result for result in self.last_tool_results[-3:]\\n            if re.search(r\\\"^<tool_result\\\\s+name='[^']+'\\\\s+status='error'>\\\", result, re.MULTILINE)\\n        ]\\n        return {\\n            \\\"job\\\": job_path,\\n            \\\"timestamp\\\": datetime.now().strftime(\\\"%Y-%m-%d %H:%M:%S\\\"),\\n            \\\"ok\\\": all(item[\\\"ok\\\"] for item in results) and not tool_errors,\\n            \\\"changed_files\\\": changed_files,\\n            \\\"tool_results\\\": list(self.last_tool_results[-3:]),\\n            \\\"tool_errors\\\": tool_errors,\\n            \\\"results\\\": results,\\n        }\"}}",
+  "moved_at": "2026-05-05 22:50:34",
+  "nonce": "a480d31d",
+  "problem": "반복 개선의 성공/실패 판정이 실제 런타임 결함을 더 잘 잡도록 검증 범위를 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"run_validation_suite\", \"content\": \"    def run_validation_suite(self, job_path, changed_files):\\n        commands = [\\n            \\\"./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py\\\",\\n            \\\"cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --self-check\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --tool-self-test\\\",\\n            \\\"Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \\\\\\\"llm/q1/core 목록 확인해라\\\\\\\"\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --check-runtime-errors\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --check-memory-leaks\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --check-thread-safety\\\",\\n            \\\"./venv/bin/python llm/q1/q1.py --check-data-consistency\\\",\\n        ]\\n        results = []\\n        for command in commands:\\n            result = self.tool_handler.execute_bash({\\\"command\\\": command})\\n            ok = \\\"status='success'\\\" in result\\n            results.append({\\\"command\\\": command, \\\"ok\\\": ok, \\\"result\\\": result})\\n        results.extend(self.verify_changed_python_imports(changed_files))\\n        tool_errors = [\\n            result for result in self.last_tool_results[-3:]\\n            if re.search(r\\\"^<tool_result\\\\s+name='[^']+'\\\\s+status='error'>\\\", result, re.MULTILINE)\\n        ]\\n        return {\\n            \\\"job\\\": job_path,\\n            \\\"timestamp\\\": datetime.now().strftime(\\\"%Y-%m-%d %H:%M:%S\\\"),\\n            \\\"ok\\\": all(item[\\\"ok\\\"] for item in results) and not tool_errors,\\n            \\\"changed_files\\\": changed_files,\\n            \\\"tool_results\\\": list(self.last_tool_results[-3:]),\\n            \\\"tool_errors\\\": tool_errors,\\n            \\\"results\\\": results,\\n        }\"}}",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "validation failed after apply; rollback completed",
+    "rejected_at": "2026-05-05 22:50:34"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:run_validation_suite",
+  "validation_report": {
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "job": "proposal:c1090c4a6584",
+    "ok": false,
+    "results": [
+      {
+        "command": "./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 proposal autopilot\ncycle 1/1\nq1 proposal autopilot summary\ncycles: 1\napplied_or_accepted: 0\nfailed_or_rejected: 0\nkind_counts: {}\n[2026-05-05 22:50:33] JOB a45f32351a0d queued request_id=None queue_depth=1\n[2026-05-05 22:50:33] JOB a45f32351a0d running\n[2026-05-05 22:50:33] JOB a45f32351a0d done elapsed_seconds=0.03\n[2026-05-05 22:50:33] JOB 38d49afd2cfd cache hit request_id=req1\n[2026-05-05 22:50:33] REQUEST #req1 stream done job_id=38d49afd2cfd cached=True elapsed_seconds=0.0 counts total=1 generate=1 health=0 jobs=0 errors=0 inference completed=1 cached=1 avg_seconds=0.03 total_seconds=0.03\n[2026-05-05 22:50:33] JOB b203a7ebf8b6 queued request_id=r1 queue_depth=1\n[2026-05-05 22:50:33] JOB b203a7ebf8b6 running\n[2026-05-05 22:50:33] JOB b203a7ebf8b6 joined duplicate request_id=r2\n[2026-05-05 22:50:33] JOB b203a7ebf8b6 done elapsed_seconds=0.03\n[2026-05-05 22:50:33] JOB 2d66fae36308 queued request_id=None queue_depth=1\n[2026-05-05 22:50:33] JOB 2d66fae36308 running\n[2026-05-05 22:50\nSTDERR: ...............................\n----------------------------------------------------------------------\nRan 31 tests in 0.160s\n\nOK\n\nOUTPUT_LENGTH: 1485\nERROR_LENGTH: 130\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --self-check",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: project_root: /Users/tigerj/Work/OrangeLabs/Orange/Orange-AI -> OK\npersona: loaded -> OK\nread_file: llm/q1/q1.py -> OK\nlist_directory: llm/q1/core -> OK\nallowed_tool_guard: disallowed read_function -> OK\n\nSTDERR: \nOUTPUT_LENGTH: 204\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --tool-self-test",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 tool self-test\nparse_tool_calls_roundtrip: OK\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='error'>Replacement function name \nmismatch: expected target, got renamed</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction decorators</tool_result>\nreplace_function_signature_guard: OK\nreplace_function_decorator_guard: OK\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction return flow</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction yield flow</tool_result>\nreplace_function_return_guard: OK\nreplace_function_yield_guard: OK\n<tool_result name='replace_function' status='error'>Post-splice verification \nfailed: function topology changed</tool_result>\nreplace_function_topology_guard: OK\n<tool_result name='execute_b\nSTDERR: \nOUTPUT_LENGTH: 1319\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \"llm/q1/core 목록 확인해라\"",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: 직접 실행 결과:\n<tool_result name='list_directory' status='success'>\n[{\"name\": \"context_manager.py\", \"size\": 0, \"type\": \"file\"}, {\"name\": \n\"analyzer.py\", \"size\": 674, \"type\": \"file\"}, {\"name\": \"session_manager.py\", \n\"size\": 0, \"type\": \"file\"}, {\"name\": \"handlers.py\", \"size\": 23300, \"type\": \n\"file\"}]\n</tool_result>\n\nSTDERR: \nOUTPUT_LENGTH: 310\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --check-runtime-errors",
+        "ok": false,
+        "result": "<tool_result name='execute_bash' status='error'>\nRETURN_CODE: 2\nSTDOUT: \nSTDERR: usage: q1.py [-h] [--task TASK] [--self-check] [--tool-self-test] [--status]\n             [--list-jobs] [--validate] [--server-health] [--restart-server]\n             [--archive-skipped] [--archive-resolved-failures]\n             [--report-latest] [--build-corpus] [--council-status]\n             [--scorecard] [--dry-run-auto] [--compact-logs] [--cycle-once]\n             [--cycle-compact-logs] [--loop] [--autopilot] [--self-play]\n             [--self-play-model] [--proposal-autopilot]\n             [--autopilot-mode {deterministic,model}]\n             [--proposal-apply-limit PROPOSAL_APPLY_LIMIT] [--list-proposals]\n             [--proposal-status {pending,accepted,rejected}]\n             [--show-proposal SHOW_PROPOSAL] [--gate-proposal GATE_PROPOSAL]\n             [--apply-proposal APPLY_PROPOSAL]\n             [--reject-proposal REJECT_PROPOSAL]\n             [--reject-reason REJECT_REASON] [--export-lora-dataset]\n             [--dataset-output DATASET_OUTPUT] [--cycles CYCLES]\n           \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 1784\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --check-memory-leaks",
+        "ok": false,
+        "result": "<tool_result name='execute_bash' status='error'>\nRETURN_CODE: 2\nSTDOUT: \nSTDERR: usage: q1.py [-h] [--task TASK] [--self-check] [--tool-self-test] [--status]\n             [--list-jobs] [--validate] [--server-health] [--restart-server]\n             [--archive-skipped] [--archive-resolved-failures]\n             [--report-latest] [--build-corpus] [--council-status]\n             [--scorecard] [--dry-run-auto] [--compact-logs] [--cycle-once]\n             [--cycle-compact-logs] [--loop] [--autopilot] [--self-play]\n             [--self-play-model] [--proposal-autopilot]\n             [--autopilot-mode {deterministic,model}]\n             [--proposal-apply-limit PROPOSAL_APPLY_LIMIT] [--list-proposals]\n             [--proposal-status {pending,accepted,rejected}]\n             [--show-proposal SHOW_PROPOSAL] [--gate-proposal GATE_PROPOSAL]\n             [--apply-proposal APPLY_PROPOSAL]\n             [--reject-proposal REJECT_PROPOSAL]\n             [--reject-reason REJECT_REASON] [--export-lora-dataset]\n             [--dataset-output DATASET_OUTPUT] [--cycles CYCLES]\n           \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 1782\n</tool_result>"
+      },
+      {
+        "command": "/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/venv/bin/python -c importlib.import_module q1",
+        "ok": true,
+        "result": "<tool_result name='import_check' status='success'>\nMODULE: q1\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \n</tool_result>"
+      }
+    ],
+    "timestamp": "2026-05-05 22:50:34",
+    "tool_errors": [],
+    "tool_results": [
+      "<tool_result name='replace_function' status='success'>교체 완료</tool_result>"
+    ]
+  }
+}

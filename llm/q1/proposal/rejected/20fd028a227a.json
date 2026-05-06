@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 01:44:46",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 01:46:29",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "20fd028a227a",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 80923,
+    "max_tokens": 1024,
+    "prompt_hash": "1899a7a53e7ad35ecda51ba88bccbf234d9d360794b9b5ba9b19cede67ae545c",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"parse_tool_calls\", \"content\": \"    def parse_tool_calls(self, text):\\n        calls = []\\n        block_pattern = re.compile(\\n            r'<tool_call\\\\s+([^>]*)>\\\\s*<content>\\\\s*(?:<!\\\\[CDATA\\\\[)?(.*?)(?:\\\\]\\\\]>)?\\\\s*</content>\\\\s*</tool_call>',\\n            re.DOTALL,\\n        )\\n        tag_items = []\\n        masked_text_parts = []\\n        cursor = 0\\n        for match in block_pattern.finditer(text):\\n            tag_items.append((match.group(1), match.group(2)))\\n            masked_text_parts.append(text[cursor:match.start()])\\n            cursor = match.end()\\n        masked_text_parts.append(text[cursor:])\\n        masked_text = \\\"\\\".join(masked_text_parts)\\n        generic_block_pattern = re.compile(r'<tool_call\\\\s+([^>]*)>\\\\s*(.*?)\\\\s*</tool_call>', re.DOTALL)\\n        generic_mask_parts = []\\n        cursor = 0\\n        for match in generic_block_pattern.finditer(masked_text):\\n            generic_content = match.group(2).strip()\\n            if generic_content.startswith('<![CDATA[') and generic_content.endswith(']]>'):\\n                generic_content = generic_content[len('<![CDATA['):-len(']]>')]\\n            tag_items.append((match.group(1), generic_content.strip()))\\n            generic_mask_parts.append(masked_text[cursor:match.start()])\\n            cursor = match.end()\\n        generic_mask_parts.append(masked_text[cursor:])\\n        masked_text = \\\"\\\".join(generic_mask_parts)\\n        tag_items.extend((tag_content, None) for tag_content in re.findall(r'<tool_call\\\\s+(.*?)\\\\s*/>', masked_text, re.DOTALL))\\n        for tag_content, block_content in tag_items:\\n            call = {}\\n            content_match = re.search(r'\\\\bcontent=([\\\"\\\\'])', tag_content, re.DOTALL)\\n            attr_text = tag_content\\n            if block_content is not None:\\n                call[\\\"content\\\"] = html.unescape(block_content)\\n            elif content_match:\\n                quote = content_match.group(1)\\n                content_start = content_match.end()\\n                content_end = tag_content.rfind(quote)\\n                if content_end >= content_start:\\n                    call[\\\"content\\\"] = html.unescape(tag_content[content_start:content_end])\\n                    attr_text = tag_content[:content_match.start()]\\n            attrs = re.findall(r'(\\\\w+)=([\"\\'])(.*?)\\\\2', attr_text, re.DOTALL)\\n            for attr_name, _, attr_val in attrs:\\n                call[attr_name] = html.unescape(attr_val)\\n            if 'name' not in call:\\n                call['name'] = call.get('function') or call.get('type')\\n            if 'name' in call:\\n                calls.append(call)\\n        hermes_pattern = re.compile(r'<|im_start|>\\\\s*(\\\\{.*?\\\\})\\\\s*<|im_start|>', re.DOTALL)\\n        for match in hermes_pattern.finditer(text):\\n            try:\\n                parsed = json.loads(match.group(1))\\n            except json.JSONDecodeError:\\n                continue\\n            if not isinstance(parsed, dict):\\n                continue\\n            name = parsed.get(\\\"name\\\")\\n            arguments = parsed.get(\\\"arguments\\\")\\n            if not isinstance(name, str) or not isinstance(arguments, dict):\\n                continue\\n            call = dict(arguments)\\n            call[\\\"name\\\"] = name\\n            calls.append(call)\\n        if not calls:\\n            candidate = text.strip()\\n            fence_match = re.match(r'^```(?:json)?\\\\s*(.*?)\\\\s*```$', candidate, re.DOTALL)\\n            if fence_match:\\n                candidate = fence_match.group(1).strip()\\n            if candidate.startswith('{') and candidate.endswith('}'):\\n                try:\\n                    parsed = json.loads(candidate)\\n                except json.JSONDecodeError:\\n                    parsed = None\\n                if isinstance(parsed, dict):\\n                    name = parsed.get(\\\"name\\\")\\n                    arguments = parsed.get(\\\"arguments\\\")\\n                    if isinstance(name, str) and isinstance(arguments, dict):\\n                        call = dict(arguments)\\n                        call[\\\"name\\\"] = name\\n                        calls.append(call)\\n        return calls\\n\"}}",
+  "moved_at": "2026-05-06 01:46:29",
+  "nonce": "e286106d",
+  "problem": "모델이 생성한 tool_call을 quote 혼합, 긴 content, 잘림 상황에서도 더 안정적으로 파싱하도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"parse_tool_calls\", \"content\": \"    def parse_tool_calls(self, text):\\n        calls = []\\n        block_pattern = re.compile(\\n            r'<tool_call\\\\s+([^>]*)>\\\\s*<content>\\\\s*(?:<!\\\\[CDATA\\\\[)?(.*?)(?:\\\\]\\\\]>)?\\\\s*</content>\\\\s*</tool_call>',\\n            re.DOTALL,\\n        )\\n        tag_items = []\\n        masked_text_parts = []\\n        cursor = 0\\n        for match in block_pattern.finditer(text):\\n            tag_items.append((match.group(1), match.group(2)))\\n            masked_text_parts.append(text[cursor:match.start()])\\n            cursor = match.end()\\n        masked_text_parts.append(text[cursor:])\\n        masked_text = \\\"\\\".join(masked_text_parts)\\n        generic_block_pattern = re.compile(r'<tool_call\\\\s+([^>]*)>\\\\s*(.*?)\\\\s*</tool_call>', re.DOTALL)\\n        generic_mask_parts = []\\n        cursor = 0\\n        for match in generic_block_pattern.finditer(masked_text):\\n            generic_content = match.group(2).strip()\\n            if generic_content.startswith('<![CDATA[') and generic_content.endswith(']]>'):\\n                generic_content = generic_content[len('<![CDATA['):-len(']]>')]\\n            tag_items.append((match.group(1), generic_content.strip()))\\n            generic_mask_parts.append(masked_text[cursor:match.start()])\\n            cursor = match.end()\\n        generic_mask_parts.append(masked_text[cursor:])\\n        masked_text = \\\"\\\".join(generic_mask_parts)\\n        tag_items.extend((tag_content, None) for tag_content in re.findall(r'<tool_call\\\\s+(.*?)\\\\s*/>', masked_text, re.DOTALL))\\n        for tag_content, block_content in tag_items:\\n            call = {}\\n            content_match = re.search(r'\\\\bcontent=([\\\"\\\\'])', tag_content, re.DOTALL)\\n            attr_text = tag_content\\n            if block_content is not None:\\n                call[\\\"content\\\"] = html.unescape(block_content)\\n            elif content_match:\\n                quote = content_match.group(1)\\n                content_start = content_match.end()\\n                content_end = tag_content.rfind(quote)\\n                if content_end >= content_start:\\n                    call[\\\"content\\\"] = html.unescape(tag_content[content_start:content_end])\\n                    attr_text = tag_content[:content_match.start()]\\n            attrs = re.findall(r'(\\\\w+)=([\"\\'])(.*?)\\\\2', attr_text, re.DOTALL)\\n            for attr_name, _, attr_val in attrs:\\n                call[attr_name] = html.unescape(attr_val)\\n            if 'name' not in call:\\n                call['name'] = call.get('function') or call.get('type')\\n            if 'name' in call:\\n                calls.append(call)\\n        hermes_pattern = re.compile(r'<|im_start|>\\\\s*(\\\\{.*?\\\\})\\\\s*<|im_start|>', re.DOTALL)\\n        for match in hermes_pattern.finditer(text):\\n            try:\\n                parsed = json.loads(match.group(1))\\n            except json.JSONDecodeError:\\n                continue\\n            if not isinstance(parsed, dict):\\n                continue\\n            name = parsed.get(\\\"name\\\")\\n            arguments = parsed.get(\\\"arguments\\\")\\n            if not isinstance(name, str) or not isinstance(arguments, dict):\\n                continue\\n            call = dict(arguments)\\n            call[\\\"name\\\"] = name\\n            calls.append(call)\\n        if not calls:\\n            candidate = text.strip()\\n            fence_match = re.match(r'^```(?:json)?\\\\s*(.*?)\\\\s*```$', candidate, re.DOTALL)\\n            if fence_match:\\n                candidate = fence_match.group(1).strip()\\n            if candidate.startswith('{') and candidate.endswith('}'):\\n                try:\\n                    parsed = json.loads(candidate)\\n                except json.JSONDecodeError:\\n                    parsed = None\\n                if isinstance(parsed, dict):\\n                    name = parsed.get(\\\"name\\\")\\n                    arguments = parsed.get(\\\"arguments\\\")\\n                    if isinstance(name, str) and isinstance(arguments, dict):\\n                        call = dict(arguments)\\n                        call[\\\"name\\\"] = name\\n                        calls.append(call)\\n        return calls\\n\"}}",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 01:46:29"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:parse_tool_calls"
+}

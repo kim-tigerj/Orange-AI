@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 01:53:06",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 01:53:07",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "replace_function validation failed: Replacement content must contain exactly one function definition",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "36113d052fbf",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 26654,
+    "max_tokens": 1024,
+    "prompt_hash": "6203a0ba54357c1ae66fd400dd42d087bbad5cf70ca50d0451d2da588da26e73",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines).replace('\\\\n', ' ')\\n        # 간결한 목표 추출을 위해 문장 단위로 분리하고 첫 번째 문장 사용\\n        sentences = cleaned_text.split('. ')\\n        main_goal = sentences[0].strip() if sentences else cleaned_text.strip()\\n        # 추가로 문장이 너무 길 경우 요약 모델 사용\\n        if len(main_goal) > 50:\\n            main_goal = self.summarize_text(main_goal)\\n        return main_goal if main_goal else None\\n\\n    def summarize_text(self, text):\\n        # 간단한 요약 로직 예시 (실제 사용 시 더 복잡한 모델 사용 권장)\\n        return ' '.join(text.split()[:10]) + '...' if len(text) > 50 else text\"}}\n",
+  "moved_at": "2026-05-06 01:53:07",
+  "nonce": "1d9f02f3",
+  "problem": "job 문서의 목표를 간결하게 추출해 함수 개선 프롬프트 품질을 높이도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines).replace('\\\\n', ' ')\\n        # 간결한 목표 추출을 위해 문장 단위로 분리하고 첫 번째 문장 사용\\n        sentences = cleaned_text.split('. ')\\n        main_goal = sentences[0].strip() if sentences else cleaned_text.strip()\\n        # 추가로 문장이 너무 길 경우 요약 모델 사용\\n        if len(main_goal) > 50:\\n            main_goal = self.summarize_text(main_goal)\\n        return main_goal if main_goal else None\\n\\n    def summarize_text(self, text):\\n        # 간단한 요약 로직 예시 (실제 사용 시 더 복잡한 모델 사용 권장)\\n        return ' '.join(text.split()[:10]) + '...' if len(text) > 50 else text\", \"func_name\": \"extract_job_goal\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 01:53:07"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:extract_job_goal"
+}

@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 07:45:29",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 07:47:42",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "replace_function validation failed: Unsafe generated content blocked: use a specific exception type instead of except Exception",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "613f37253a4f",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 15936,
+    "max_tokens": 1024,
+    "prompt_hash": "d7c16ff9aa7d694d8249af64d628aa641ca5aed6ebb5c0631653182ebee16eba",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"snapshot_paths\", \"content\": \"    def snapshot_paths(self, paths):\\n        snapshot = {}\\n        for path in paths:\\n            try:\\n                full_path = self.tool_handler._resolve_path(path)\\n                if not os.path.exists(full_path):\\n                    snapshot[path] = None\\n                    continue\\n                with open(full_path, \\\"rb\\\") as f:\\n                    snapshot[path] = hashlib.sha256(f.read()).hexdigest()\\n            except (OSError, ValueError, FileNotFoundError, PermissionError, IOError) as e:\\n                snapshot[path] = f\\\"ERROR: {e}\\\"\\n            except Exception as e:\\n                snapshot[path] = f\\\"UNKNOWN ERROR: {e}\\\"\\n        return snapshot\"}}",
+  "moved_at": "2026-05-06 07:47:42",
+  "nonce": "22dc319b",
+  "problem": "변경 감지가 누락 파일과 읽기 오류에 더 안정적으로 대응하도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def snapshot_paths(self, paths):\\n        snapshot = {}\\n        for path in paths:\\n            try:\\n                full_path = self.tool_handler._resolve_path(path)\\n                if not os.path.exists(full_path):\\n                    snapshot[path] = None\\n                    continue\\n                with open(full_path, \\\"rb\\\") as f:\\n                    snapshot[path] = hashlib.sha256(f.read()).hexdigest()\\n            except (OSError, ValueError, FileNotFoundError, PermissionError, IOError) as e:\\n                snapshot[path] = f\\\"ERROR: {e}\\\"\\n            except Exception as e:\\n                snapshot[path] = f\\\"UNKNOWN ERROR: {e}\\\"\\n        return snapshot\", \"func_name\": \"snapshot_paths\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 07:47:42"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:snapshot_paths"
+}

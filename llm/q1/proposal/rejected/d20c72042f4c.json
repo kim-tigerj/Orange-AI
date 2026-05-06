@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-05 22:50:10",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 22:50:11",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "d20c72042f4c",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 7,
+    "max_tokens": 1024,
+    "prompt_hash": "1116b03cc8748ba149e8f459605ac5c38c6b5e5d8773bad5a0f4d996d6b44286",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"auto_improve\", \"content\": \"    def auto_improve(self, limit, max_no_change=0):\\n        todo_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"todo\\\")\\n        os.makedirs(todo_dir, exist_ok=True)\\n        jobs = [\\n            os.path.join(todo_dir, name)\\n            for name in sorted(os.listdir(todo_dir))\\n            if name.endswith(\\\".md\\\")\\n        ]\\n        processed = 0\\n        consecutive_no_change = 0\\n        skipped_model_calls = 0\\n        stopped_reason = \\\"limit reached or no jobs\\\"\\n        latest_reports = self.latest_report_by_target()\\n        for job_path in jobs:\\n            if processed >= limit:\\n                break\\n            processed += 1\\n            with open(job_path, \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                job = f.read()\\n            target = self.extract_target_function(job)\\n            if not target:\\n                self.write_skip_report(os.path.relpath(job_path, PROJECT_ROOT), \\\"missing Target Function\\\")\\n                self.archive_job(job_path)\\n                continue\\n            job_goal = self.extract_job_goal(job) or \\\"\\\"\\n            latest = latest_reports.get(target)\\n            fast_skip_allowed = \\\"자동 발견된 함수 후보\\\" in job_goal\\n            if fast_skip_allowed and latest and latest.get(\\\"verdict\\\") == \\\"NO_CHANGE\\\" and latest.get(\\\"changed_files\\\") == \\\"(none)\\\":\\n                reason = f\\\"recent NO_CHANGE for {target}; skipped model call\\\"\\n                report = self.fast_no_change_report(f\\\"function:{target}\\\", reason, goal=job_goal)\\n                report[\\\"model_elapsed_ms\\\"] = None\\n                self.write_improve_report(f\\\"function_{target.replace(\\'/\\', \\'_\\').replace(\\':\\', \\'__\\')}\\\", report)\\n                self.archive_job(job_path)\\n                consecutive_no_change += 1\\n                skipped_model_calls += 1\\n                if max_no_change > 0 and consecutive_no_change >= max_no_change:\\n                    stopped_reason = f\\\"max_no_change reached ({max_no_change})\\\"\\n                    break\\n                continue\\n            current_source_info = None\\n            current_source_hash = None\\n            try:\\n                current_source_info = self.function_source_info(target)\\n                current_source_hash = current_source_info[\\\"hash\\\"]\\n            except (OSError, RuntimeError, ValueError):\\n                current_source_hash = None\\n            exact_no_change = (\\n                latest\\n                and latest.get(\\\"verdict\\\") == \\\"NO_CHANGE\\\"\\n                and latest.get(\\\"changed_files\\\") == \\\"(none)\\\"\\n                and latest.get(\\\"goal\\\") == job_goal\\n                and latest.get(\\\"target_source_hash\\\") == current_source_hash\\n                and current_source_hash is not None\\n            )\\n            if exact_no_change:\\n                reason = f\\\"same goal and unchanged source for {target}; skipped model call\\\"\\n                report = self.fast_no_change_report(\\n                    f\\\"function:{target}\\\",\\n                    reason,\\n                    goal=job_goal,\\n                    target_source_hash=current_source_hash,\\n                )\\n                report[\\\"model_elapsed_ms\\\"] = None\\n                self.write_improve_report(f\\\"function_{target.replace(\\'/\\', \\'_\\').replace(\\':\\', \\'__\\')}\\\", report)\\n                self.archive_job(job_path)\\n                consecutive_no_change += 1\\n                skipped_model_calls += 1\\n                if max_no_change > 0 and consecutive_no_change >= max_no_change:\\n                    stopped_reason = f\\\"max_no_change reached ({max_no_change})\\\"\\n                    break\\n                continue\\n            self.last_tool_results = []\\n            self.suppress_improve_exit = True\\n            try:\\n                report = self.improve_function(target, goal=job_goal, source_info=current_source_info)\\n            finally:\\n                self.suppress_improve_exit = False\\n            if report[\\\"ok\\\"]:\\n                self.archive_job(job_path)\\n            else:\\n                self.archive_job(job_path, status=\\\"failed\\\")\\n                stopped_reason = \\\"job failed and archived\\\"\\n                continue\\n            if report[\\\"ok\\\"] and not report[\\\"changed_files\\\"]:\\n                consecutive_no_change += 1\\n            else:\\n                consecutive_no_change = 0\\n            if max_no_change > 0 and consecutive_no_change >= max_no_change:\\n                stopped_reason = f\\\"max_no_change reached ({max_no_change})\\\"\\n                break\\n        self.write_latest_summary()\\n        console.print(f\\\"[bold green]auto-improve inspected:[/bold green] {processed}\\\")\\n       ",
+  "moved_at": "2026-05-05 22:50:11",
+  "nonce": "e1c16613",
+  "problem": "자동 개선 루프가 실패 job을 격리하면서 다음 작업으로 계속 진행하도록 운영 출력을 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"auto_improve\", \"content\": \"    def auto_improve(self, limit, max_no_change=0):\\n        todo_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"todo\\\")\\n        os.makedirs(todo_dir, exist_ok=True)\\n        jobs = [\\n            os.path.join(todo_dir, name)\\n            for name in sorted(os.listdir(todo_dir))\\n            if name.endswith(\\\".md\\\")\\n        ]\\n        processed = 0\\n        consecutive_no_change = 0\\n        skipped_model_calls = 0\\n        stopped_reason = \\\"limit reached or no jobs\\\"\\n        latest_reports = self.latest_report_by_target()\\n        for job_path in jobs:\\n            if processed >= limit:\\n                break\\n            processed += 1\\n            with open(job_path, \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                job = f.read()\\n            target = self.extract_target_function(job)\\n            if not target:\\n                self.write_skip_report(os.path.relpath(job_path, PROJECT_ROOT), \\\"missing Target Function\\\")\\n                self.archive_job(job_path)\\n                continue\\n            job_goal = self.extract_job_goal(job) or \\\"\\\"\\n            latest = latest_reports.get(target)\\n            fast_skip_allowed = \\\"자동 발견된 함수 후보\\\" in job_goal\\n            if fast_skip_allowed and latest and latest.get(\\\"verdict\\\") == \\\"NO_CHANGE\\\" and latest.get(\\\"changed_files\\\") == \\\"(none)\\\":\\n                reason = f\\\"recent NO_CHANGE for {target}; skipped model call\\\"\\n                report = self.fast_no_change_report(f\\\"function:{target}\\\", reason, goal=job_goal)\\n                report[\\\"model_elapsed_ms\\\"] = None\\n                self.write_improve_report(f\\\"function_{target.replace(\\'/\\', \\'_\\').replace(\\':\\', \\'__\\')}\\\", report)\\n                self.archive_job(job_path)\\n                consecutive_no_change += 1\\n                skipped_model_calls += 1\\n                if max_no_change > 0 and consecutive_no_change >= max_no_change:\\n                    stopped_reason = f\\\"max_no_change reached ({max_no_change})\\\"\\n                    break\\n                continue\\n            current_source_info = None\\n            current_source_hash = None\\n            try:\\n                current_source_info = self.function_source_info(target)\\n                current_source_hash = current_source_info[\\\"hash\\\"]\\n            except (OSError, RuntimeError, ValueError):\\n                current_source_hash = None\\n            exact_no_change = (\\n                latest\\n                and latest.get(\\\"verdict\\\") == \\\"NO_CHANGE\\\"\\n                and latest.get(\\\"changed_files\\\") == \\\"(none)\\\"\\n                and latest.get(\\\"goal\\\") == job_goal\\n                and latest.get(\\\"target_source_hash\\\") == current_source_hash\\n                and current_source_hash is not None\\n            )\\n            if exact_no_change:\\n                reason = f\\\"same goal and unchanged source for {target}; skipped model call\\\"\\n                report = self.fast_no_change_report(\\n                    f\\\"function:{target}\\\",\\n                    reason,\\n                    goal=job_goal,\\n                    target_source_hash=current_source_hash,\\n                )\\n                report[\\\"model_elapsed_ms\\\"] = None\\n                self.write_improve_report(f\\\"function_{target.replace(\\'/\\', \\'_\\').replace(\\':\\', \\'__\\')}\\\", report)\\n                self.archive_job(job_path)\\n                consecutive_no_change += 1\\n                skipped_model_calls += 1\\n                if max_no_change > 0 and consecutive_no_change >= max_no_change:\\n                    stopped_reason = f\\\"max_no_change reached ({max_no_change})\\\"\\n                    break\\n                continue\\n            self.last_tool_results = []\\n            self.suppress_improve_exit = True\\n            try:\\n                report = self.improve_function(target, goal=job_goal, source_info=current_source_info)\\n            finally:\\n                self.suppress_improve_exit = False\\n            if report[\\\"ok\\\"]:\\n                self.archive_job(job_path)\\n            else:\\n                self.archive_job(job_path, status=\\\"failed\\\")\\n                stopped_reason = \\\"job failed and archived\\\"\\n                continue\\n            if report[\\\"ok\\\"] and not report[\\\"changed_files\\\"]:\\n                consecutive_no_change += 1\\n            else:\\n                consecutive_no_change = 0\\n            if max_no_change > 0 and consecutive_no_change >= max_no_change:\\n                stopped_reason = f\\\"max_no_change reached ({max_no_change})\\\"\\n                break\\n        self.write_latest_summary()\\n        console.print(f\\\"[bold green]auto-improve inspected:[/bold green] {processed}\\\")\\n       ",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-05 22:50:11"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:auto_improve"
+}

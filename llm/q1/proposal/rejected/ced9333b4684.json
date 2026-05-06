@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-05 23:25:31",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 23:27:43",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "protected target function: replace_function",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "ced9333b4684",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 59364,
+    "max_tokens": 1024,
+    "prompt_hash": "e290e4061c53564f7a4855c8b6b9bfd3023fa99c256c59d0898fb1c5b33d423d",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"replace_function\", \"content\": \"    def replace_function(self, call):\\n        path, func_name, content = call.get('path'), call.get('func_name'), call.get('content')\\n        if not path or not func_name or content is None:\\n            raise Exception(\\\"path, func_name, and content are required\\\")\\n        content = self._strip_code_fence(content)\\n        full_path = self._resolve_path(path)\\n        self._ensure_write_allowed(full_path)\\n        self._reject_unsafe_generated_content(path, content, func_name=func_name)\\n        with open(full_path, 'r', encoding='utf-8') as f: source = f.read()\\n        tree = ast.parse(source)\\n        target = next((n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == func_name), None)\\n        if not target: raise Exception(f\\\"Function {func_name} not found in {path}\\\")\\n        replacement_node = self._replacement_function_node(content, func_name)\\n        self._assert_function_boundary_preserved(target, replacement_node)\\n        lines = source.splitlines(keepends=True)\\n        original_line = lines[target.lineno - 1]\\n        original_indent = original_line[:len(original_line) - len(original_line.lstrip())]\\n        content_lines = content.splitlines(keepends=True)\\n        if content_lines and not content_lines[-1].endswith((\\\"\\\\n\\\", \\\"\\\\r\\\")):\\n            content_lines[-1] += \\\"\\\\n\\\"\\n        first_line = next((line for line in content_lines if line.strip()), \\\"\\\")\\n        if original_indent and first_line.startswith((\\\"def \\\", \\\"async def \\\")):\\n            content_lines = [\\n                original_indent + line if line.strip() else line\\n                for line in content_lines\\n            ]\\n        lines[target.lineno-1:getattr(target, 'end_lineno', len(lines))] = content_lines\\n        updated = \\\"\\\".join(lines)\\n        if path.endswith(\\\".py\\\"):\\n            valid, err = self._validate_python_with_context(updated)\\n            if not valid: raise Exception(f\\\"Python validation failed: {err}\\\")\\n            updated_tree = ast.parse(updated)\\n            updated_target = next((n for n in ast.walk(updated_tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == func_name), None)\\n            if not updated_target:\\n                raise ValueError(f\\\"Post-splice verification failed: target function {func_name} disappeared\\\")\\n            self._assert_function_boundary_preserved(target, updated_target)\\n            original_functions = sorted(n.name for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)))\\n            updated_functions = sorted(n.name for n in ast.walk(updated_tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)))\\n            if original_functions != updated_functions:\\n                raise ValueError(\\\"Post-splice verification failed: function topology changed\\\")\\n        with open(full_path, 'w', encoding='utf-8') as f: f.write(updated)\\n        return \\\"<tool_result name='replace_function' status='success'>교체 완료</tool_result>\\\"\\n\"}}",
+  "moved_at": "2026-05-05 23:27:43",
+  "nonce": "69bf4528",
+  "problem": "함수 단위 자가수정이 실패했을 때 오류 원인을 더 명확히 남기도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"replace_function\", \"content\": \"    def replace_function(self, call):\\n        path, func_name, content = call.get('path'), call.get('func_name'), call.get('content')\\n        if not path or not func_name or content is None:\\n            raise Exception(\\\"path, func_name, and content are required\\\")\\n        content = self._strip_code_fence(content)\\n        full_path = self._resolve_path(path)\\n        self._ensure_write_allowed(full_path)\\n        self._reject_unsafe_generated_content(path, content, func_name=func_name)\\n        with open(full_path, 'r', encoding='utf-8') as f: source = f.read()\\n        tree = ast.parse(source)\\n        target = next((n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == func_name), None)\\n        if not target: raise Exception(f\\\"Function {func_name} not found in {path}\\\")\\n        replacement_node = self._replacement_function_node(content, func_name)\\n        self._assert_function_boundary_preserved(target, replacement_node)\\n        lines = source.splitlines(keepends=True)\\n        original_line = lines[target.lineno - 1]\\n        original_indent = original_line[:len(original_line) - len(original_line.lstrip())]\\n        content_lines = content.splitlines(keepends=True)\\n        if content_lines and not content_lines[-1].endswith((\\\"\\\\n\\\", \\\"\\\\r\\\")):\\n            content_lines[-1] += \\\"\\\\n\\\"\\n        first_line = next((line for line in content_lines if line.strip()), \\\"\\\")\\n        if original_indent and first_line.startswith((\\\"def \\\", \\\"async def \\\")):\\n            content_lines = [\\n                original_indent + line if line.strip() else line\\n                for line in content_lines\\n            ]\\n        lines[target.lineno-1:getattr(target, 'end_lineno', len(lines))] = content_lines\\n        updated = \\\"\\\".join(lines)\\n        if path.endswith(\\\".py\\\"):\\n            valid, err = self._validate_python_with_context(updated)\\n            if not valid: raise Exception(f\\\"Python validation failed: {err}\\\")\\n            updated_tree = ast.parse(updated)\\n            updated_target = next((n for n in ast.walk(updated_tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == func_name), None)\\n            if not updated_target:\\n                raise ValueError(f\\\"Post-splice verification failed: target function {func_name} disappeared\\\")\\n            self._assert_function_boundary_preserved(target, updated_target)\\n            original_functions = sorted(n.name for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)))\\n            updated_functions = sorted(n.name for n in ast.walk(updated_tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)))\\n            if original_functions != updated_functions:\\n                raise ValueError(\\\"Post-splice verification failed: function topology changed\\\")\\n        with open(full_path, 'w', encoding='utf-8') as f: f.write(updated)\\n        return \\\"<tool_result name='replace_function' status='success'>교체 완료</tool_result>\\\"\\n\"}}",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-05 23:27:43"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:replace_function"
+}

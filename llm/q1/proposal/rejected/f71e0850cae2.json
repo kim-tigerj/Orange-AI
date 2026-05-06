@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 05:49:53",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 05:49:56",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "replace_function validation failed: Replacement content must contain exactly one function definition",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "f71e0850cae2",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 67947,
+    "max_tokens": 1024,
+    "prompt_hash": "c70bc00c39e5d8d3069afe16e542660b59f2dbb08b6a88afec6a466c71af6867",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"print_latest_failure\", \"content\": \"    def print_latest_failure(self):\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        if not os.path.exists(report_dir):\\n            console.print(\\\"[bold red]report directory missing[/bold red]\\\")\\n            raise SystemExit(1)\\n        report_files = [\\n            os.path.join(report_dir, name)\\n            for name in os.listdir(report_dir)\\n            if name.endswith(\\\".md\\\") and name != \\\"latest_summary.md\\\"\\n        ]\\n        report_files.sort(key=os.path.getmtime, reverse=True)\\n        latest_by_target = self.latest_report_by_target()\\n        for path in report_files:\\n            with open(path, \\\"r\\\", encoding=\\\"utf-8\\\", errors=\\\"replace\\\") as f:\\n                text = f.read()\\n            job = self.extract_report_field(text, \\\"job\\\")\\n            if job.startswith(\\\"function:\\\"):\\n                target = job.replace(\\\"function:\\\", \\\"\\\", 1)\\n                latest = latest_by_target.get(target)\\n                if (\\n                    latest\\n                    and os.path.abspath(latest.get(\\\"path\\\", \\\"\\\")) != os.path.abspath(path)\\n                    and latest.get(\\\"verdict\\\") in {\\\"DONE\\\", \\\"NO_CHANGE\\\"}\\n                ):\\n                    continue\\n            verdict = self.extract_report_field(text, \\\"verdict\\\")\\n            tool_error_count = self.extract_report_field(text, \\\"tool_error_count\\\")\\n            errors = []\\n            if tool_error_count not in {\\\"0\\\", \\\"(missing)\\\"}:\\n                errors = re.findall(r\\\"^<tool_result name='([^']+)' status='error'>(.*?)</tool_result>\\\", text, re.MULTILINE | re.DOTALL)\\n            validation_failed = re.search(r\\\"^## FAIL$\\\", text, re.MULTILINE) is not None\\n            has_failure = (\\n                bool(errors)\\n                or validation_failed\\n                or verdict in {\\\"CONTINUE\\\", \\\"FAIL\\\"}\\n            )\\n            if not has_failure:\\n                continue\\n            console.print(\\\"[bold]q1 latest failure summary[/bold]\\\")\\n            console.print(f\\\"file: {os.path.relpath(path, PROJECT_ROOT)}\\\")\\n            console.print(f\\\"job: {job}\\\")\\n            console.print(f\\\"timestamp: {self.extract_report_field(text, 'timestamp')}\\\")\\n            console.print(f\\\"verdict: {verdict}\\\")\\n            if errors:\\n                console.print(f\\\"tool_errors: {len(errors)}\\\")\\n                for name, error in errors[:3]:\\n                    console.print(f\\\"  - {name}: {error.strip()[:100]}{'...' if len(error.strip()) > 100 else ''}\\\")\\n            if validation_failed:\\n                console.print(\\\"validation_failure: present\\\")\\n            failure_reason = self.extract_report_field(text, \\\"failure_reason\\\")\\n            if failure_reason:\\n                console.print(f\\\"failure_reason: {failure_reason.strip()[:200]}{'...' if len(failure_reason.strip()) > 200 else ''}\\\")\\n            summary = self.summarize_failure(failure_reason)\\n            console.print(f\\\"summary: {summary}\\\")\\n            return\\n        console.print(\\\"[bold]q1 latest failure summary[/bold]\\\")\\n        console.print(\\\"none\\\")\\n\\n    def summarize_failure(self, failure_reason):\\n        if not failure_reason:\\n            return \\\"No specific failure reason provided.\\\"\\n        summary_length = min(100, len(failure_reason.strip()))\\n        return failure_reason.strip()[:summary_length] + ('...' if len(failure_reason.strip()) > summary_length else '')\"}}\n",
+  "moved_at": "2026-05-06 05:49:56",
+  "nonce": "cb78f4fe",
+  "problem": "최신 실패 원인을 긴 보고서 없이 빠르게 판단할 수 있도록 실패 요약 출력을 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def print_latest_failure(self):\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        if not os.path.exists(report_dir):\\n            console.print(\\\"[bold red]report directory missing[/bold red]\\\")\\n            raise SystemExit(1)\\n        report_files = [\\n            os.path.join(report_dir, name)\\n            for name in os.listdir(report_dir)\\n            if name.endswith(\\\".md\\\") and name != \\\"latest_summary.md\\\"\\n        ]\\n        report_files.sort(key=os.path.getmtime, reverse=True)\\n        latest_by_target = self.latest_report_by_target()\\n        for path in report_files:\\n            with open(path, \\\"r\\\", encoding=\\\"utf-8\\\", errors=\\\"replace\\\") as f:\\n                text = f.read()\\n            job = self.extract_report_field(text, \\\"job\\\")\\n            if job.startswith(\\\"function:\\\"):\\n                target = job.replace(\\\"function:\\\", \\\"\\\", 1)\\n                latest = latest_by_target.get(target)\\n                if (\\n                    latest\\n                    and os.path.abspath(latest.get(\\\"path\\\", \\\"\\\")) != os.path.abspath(path)\\n                    and latest.get(\\\"verdict\\\") in {\\\"DONE\\\", \\\"NO_CHANGE\\\"}\\n                ):\\n                    continue\\n            verdict = self.extract_report_field(text, \\\"verdict\\\")\\n            tool_error_count = self.extract_report_field(text, \\\"tool_error_count\\\")\\n            errors = []\\n            if tool_error_count not in {\\\"0\\\", \\\"(missing)\\\"}:\\n                errors = re.findall(r\\\"^<tool_result name='([^']+)' status='error'>(.*?)</tool_result>\\\", text, re.MULTILINE | re.DOTALL)\\n            validation_failed = re.search(r\\\"^## FAIL$\\\", text, re.MULTILINE) is not None\\n            has_failure = (\\n                bool(errors)\\n                or validation_failed\\n                or verdict in {\\\"CONTINUE\\\", \\\"FAIL\\\"}\\n            )\\n            if not has_failure:\\n                continue\\n            console.print(\\\"[bold]q1 latest failure summary[/bold]\\\")\\n            console.print(f\\\"file: {os.path.relpath(path, PROJECT_ROOT)}\\\")\\n            console.print(f\\\"job: {job}\\\")\\n            console.print(f\\\"timestamp: {self.extract_report_field(text, 'timestamp')}\\\")\\n            console.print(f\\\"verdict: {verdict}\\\")\\n            if errors:\\n                console.print(f\\\"tool_errors: {len(errors)}\\\")\\n                for name, error in errors[:3]:\\n                    console.print(f\\\"  - {name}: {error.strip()[:100]}{'...' if len(error.strip()) > 100 else ''}\\\")\\n            if validation_failed:\\n                console.print(\\\"validation_failure: present\\\")\\n            failure_reason = self.extract_report_field(text, \\\"failure_reason\\\")\\n            if failure_reason:\\n                console.print(f\\\"failure_reason: {failure_reason.strip()[:200]}{'...' if len(failure_reason.strip()) > 200 else ''}\\\")\\n            summary = self.summarize_failure(failure_reason)\\n            console.print(f\\\"summary: {summary}\\\")\\n            return\\n        console.print(\\\"[bold]q1 latest failure summary[/bold]\\\")\\n        console.print(\\\"none\\\")\\n\\n    def summarize_failure(self, failure_reason):\\n        if not failure_reason:\\n            return \\\"No specific failure reason provided.\\\"\\n        summary_length = min(100, len(failure_reason.strip()))\\n        return failure_reason.strip()[:summary_length] + ('...' if len(failure_reason.strip()) > summary_length else '')\", \"func_name\": \"print_latest_failure\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 05:49:56"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:print_latest_failure"
+}

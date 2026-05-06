@@ -1,0 +1,141 @@
+{
+  "application": {
+    "applied_at": "2026-05-05 22:50:14",
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "rolled_back_files": [
+      "llm/q1/q1.py"
+    ],
+    "tool_result": "<tool_result name='replace_function' status='success'>교체 완료</tool_result>",
+    "validation_ok": false
+  },
+  "created_at": "2026-05-05 22:50:13",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 22:50:13",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "6249137f5c4a",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 1,
+    "max_tokens": 1024,
+    "prompt_hash": "b6b68ab17ef83a2f3a186a97e278e149a69fd489c279a44acdec4d49ae58d570",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"dry_run_auto\", \"content\": \"    def dry_run_auto(self, limit):\\n        todo_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"todo\\\")\\n        os.makedirs(todo_dir, exist_ok=True)\\n        jobs = [\\n            os.path.join(todo_dir, name)\\n            for name in sorted(os.listdir(todo_dir))\\n            if name.endswith(\\\".md\\\")\\n        ][:limit]\\n        run_count = 0\\n        skip_count = 0\\n        console.print(\\\"[bold]q1 dry-run auto[/bold]\\\")\\n        console.print(f\\\"limit: {limit}\\\")\\n        console.print(f\\\"planned: {len(jobs)}\\\")\\n        if not jobs:\\n            console.print(f\\\"next_action: {self.next_manual_job_command()}\\\")\\n            console.print(\\\"reason: todo directory is empty\\\")\\n            return\\n        console.print(\\\"Processing jobs in the following order:\\\")\\n        for index, job_path in enumerate(jobs, start=1):\\n            with open(job_path, \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                job = f.read()\\n            rel_path = os.path.relpath(job_path, PROJECT_ROOT)\\n            target = self.extract_target_function(job)\\n            if target:\\n                run_count += 1\\n                console.print(f\\\"{index}. RUN {rel_path} -> {target}\\\")\\n            else:\\n                skip_count += 1\\n                console.print(f\\\"{index}. SKIP {rel_path} -> missing Target Function\\\")\\n        console.print(f\\\"run_count: {run_count}\\\")\\n        console.print(f\\\"skip_count: {skip_count}\\\")\\n        if run_count == 0:\\n            console.print(f\\\"next_action: {self.next_manual_job_command()}\\\")\\n            console.print(\\\"reason: no runnable jobs found\\\")\\n        else:\\n            console.print(\\\"reason: auto-improve will process the above RUN jobs in the specified order\\\")\"}}",
+  "moved_at": "2026-05-05 22:50:14",
+  "nonce": "d40522e4",
+  "problem": "auto-improve 실행 전에 처리 순서와 skip 이유를 더 명확히 출력하도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"dry_run_auto\", \"content\": \"    def dry_run_auto(self, limit):\\n        todo_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"todo\\\")\\n        os.makedirs(todo_dir, exist_ok=True)\\n        jobs = [\\n            os.path.join(todo_dir, name)\\n            for name in sorted(os.listdir(todo_dir))\\n            if name.endswith(\\\".md\\\")\\n        ][:limit]\\n        run_count = 0\\n        skip_count = 0\\n        console.print(\\\"[bold]q1 dry-run auto[/bold]\\\")\\n        console.print(f\\\"limit: {limit}\\\")\\n        console.print(f\\\"planned: {len(jobs)}\\\")\\n        if not jobs:\\n            console.print(f\\\"next_action: {self.next_manual_job_command()}\\\")\\n            console.print(\\\"reason: todo directory is empty\\\")\\n            return\\n        console.print(\\\"Processing jobs in the following order:\\\")\\n        for index, job_path in enumerate(jobs, start=1):\\n            with open(job_path, \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                job = f.read()\\n            rel_path = os.path.relpath(job_path, PROJECT_ROOT)\\n            target = self.extract_target_function(job)\\n            if target:\\n                run_count += 1\\n                console.print(f\\\"{index}. RUN {rel_path} -> {target}\\\")\\n            else:\\n                skip_count += 1\\n                console.print(f\\\"{index}. SKIP {rel_path} -> missing Target Function\\\")\\n        console.print(f\\\"run_count: {run_count}\\\")\\n        console.print(f\\\"skip_count: {skip_count}\\\")\\n        if run_count == 0:\\n            console.print(f\\\"next_action: {self.next_manual_job_command()}\\\")\\n            console.print(\\\"reason: no runnable jobs found\\\")\\n        else:\\n            console.print(\\\"reason: auto-improve will process the above RUN jobs in the specified order\\\")\"}}",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "validation failed after apply; rollback completed",
+    "rejected_at": "2026-05-05 22:50:14"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:dry_run_auto",
+  "validation_report": {
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "job": "proposal:6249137f5c4a",
+    "ok": false,
+    "results": [
+      {
+        "command": "./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 proposal autopilot\ncycle 1/1\nq1 proposal autopilot summary\ncycles: 1\napplied_or_accepted: 0\nfailed_or_rejected: 0\nkind_counts: {}\n[2026-05-05 22:50:13] JOB 80cd678e4c36 queued request_id=None queue_depth=1\n[2026-05-05 22:50:13] JOB 80cd678e4c36 running\n[2026-05-05 22:50:13] JOB 80cd678e4c36 done elapsed_seconds=0.03\n[2026-05-05 22:50:13] JOB c52c87f2810d cache hit request_id=req1\n[2026-05-05 22:50:13] REQUEST #req1 stream done job_id=c52c87f2810d cached=True elapsed_seconds=0.0 counts total=1 generate=1 health=0 jobs=0 errors=0 inference completed=1 cached=1 avg_seconds=0.03 total_seconds=0.03\n[2026-05-05 22:50:13] JOB b078e4884b3e queued request_id=r1 queue_depth=1\n[2026-05-05 22:50:13] JOB b078e4884b3e joined duplicate request_id=r2\n[2026-05-05 22:50:13] JOB b078e4884b3e running\n[2026-05-05 22:50:14] JOB b078e4884b3e done elapsed_seconds=0.03\n[2026-05-05 22:50:14] JOB 8dc6703f9ac5 queued request_id=None queue_depth=1\n[2026-05-05 22:50:14] JOB 8dc6703f9ac5 running\n[2026-05-05 22:50\nSTDERR: ...............................\n----------------------------------------------------------------------\nRan 31 tests in 0.160s\n\nOK\n\nOUTPUT_LENGTH: 1485\nERROR_LENGTH: 130\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --self-check",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: project_root: /Users/tigerj/Work/OrangeLabs/Orange/Orange-AI -> OK\npersona: loaded -> OK\nread_file: llm/q1/q1.py -> OK\nlist_directory: llm/q1/core -> OK\nallowed_tool_guard: disallowed read_function -> OK\n\nSTDERR: \nOUTPUT_LENGTH: 204\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --tool-self-test",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 tool self-test\nparse_tool_calls_roundtrip: OK\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='error'>Replacement function name \nmismatch: expected target, got renamed</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction decorators</tool_result>\nreplace_function_signature_guard: OK\nreplace_function_decorator_guard: OK\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction return flow</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction yield flow</tool_result>\nreplace_function_return_guard: OK\nreplace_function_yield_guard: OK\n<tool_result name='replace_function' status='error'>Post-splice verification \nfailed: function topology changed</tool_result>\nreplace_function_topology_guard: OK\n<tool_result name='execute_b\nSTDERR: \nOUTPUT_LENGTH: 1319\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \"llm/q1/core 목록 확인해라\"",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: 직접 실행 결과:\n<tool_result name='list_directory' status='success'>\n[{\"name\": \"context_manager.py\", \"size\": 0, \"type\": \"file\"}, {\"name\": \n\"analyzer.py\", \"size\": 674, \"type\": \"file\"}, {\"name\": \"session_manager.py\", \n\"size\": 0, \"type\": \"file\"}, {\"name\": \"handlers.py\", \"size\": 23300, \"type\": \n\"file\"}]\n</tool_result>\n\nSTDERR: \nOUTPUT_LENGTH: 310\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --check-runtime-errors",
+        "ok": false,
+        "result": "<tool_result name='execute_bash' status='error'>\nRETURN_CODE: 2\nSTDOUT: \nSTDERR: usage: q1.py [-h] [--task TASK] [--self-check] [--tool-self-test] [--status]\n             [--list-jobs] [--validate] [--server-health] [--restart-server]\n             [--archive-skipped] [--archive-resolved-failures]\n             [--report-latest] [--build-corpus] [--council-status]\n             [--scorecard] [--dry-run-auto] [--compact-logs] [--cycle-once]\n             [--cycle-compact-logs] [--loop] [--autopilot] [--self-play]\n             [--self-play-model] [--proposal-autopilot]\n             [--autopilot-mode {deterministic,model}]\n             [--proposal-apply-limit PROPOSAL_APPLY_LIMIT] [--list-proposals]\n             [--proposal-status {pending,accepted,rejected}]\n             [--show-proposal SHOW_PROPOSAL] [--gate-proposal GATE_PROPOSAL]\n             [--apply-proposal APPLY_PROPOSAL]\n             [--reject-proposal REJECT_PROPOSAL]\n             [--reject-reason REJECT_REASON] [--export-lora-dataset]\n             [--dataset-output DATASET_OUTPUT] [--cycles CYCLES]\n           \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 1784\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --check-memory-leaks",
+        "ok": false,
+        "result": "<tool_result name='execute_bash' status='error'>\nRETURN_CODE: 2\nSTDOUT: \nSTDERR: usage: q1.py [-h] [--task TASK] [--self-check] [--tool-self-test] [--status]\n             [--list-jobs] [--validate] [--server-health] [--restart-server]\n             [--archive-skipped] [--archive-resolved-failures]\n             [--report-latest] [--build-corpus] [--council-status]\n             [--scorecard] [--dry-run-auto] [--compact-logs] [--cycle-once]\n             [--cycle-compact-logs] [--loop] [--autopilot] [--self-play]\n             [--self-play-model] [--proposal-autopilot]\n             [--autopilot-mode {deterministic,model}]\n             [--proposal-apply-limit PROPOSAL_APPLY_LIMIT] [--list-proposals]\n             [--proposal-status {pending,accepted,rejected}]\n             [--show-proposal SHOW_PROPOSAL] [--gate-proposal GATE_PROPOSAL]\n             [--apply-proposal APPLY_PROPOSAL]\n             [--reject-proposal REJECT_PROPOSAL]\n             [--reject-reason REJECT_REASON] [--export-lora-dataset]\n             [--dataset-output DATASET_OUTPUT] [--cycles CYCLES]\n           \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 1782\n</tool_result>"
+      },
+      {
+        "command": "/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/venv/bin/python -c importlib.import_module q1",
+        "ok": true,
+        "result": "<tool_result name='import_check' status='success'>\nMODULE: q1\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \n</tool_result>"
+      }
+    ],
+    "timestamp": "2026-05-05 22:50:14",
+    "tool_errors": [],
+    "tool_results": [
+      "<tool_result name='replace_function' status='success'>교체 완료</tool_result>"
+    ]
+  }
+}

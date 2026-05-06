@@ -1,0 +1,87 @@
+{
+  "application": {
+    "applied_at": "2026-05-05 23:19:50",
+    "changed_files": [
+      "llm/q1/core/handlers.py"
+    ],
+    "error": "<tool_result name='replace_function' status='error'>Unsafe generated content blocked: use a specific exception type instead of except Exception</tool_result>",
+    "rolled_back_files": [
+      "llm/q1/core/handlers.py"
+    ],
+    "validation_ok": false
+  },
+  "created_at": "2026-05-05 23:18:15",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 23:19:50",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "b3fd23a75e2b",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 19245,
+    "max_tokens": 1024,
+    "prompt_hash": "0864927e70de44cd63d41480c90cd36a90cf3699082ef6d693b02358041fd0c9",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"read_function\", \"content\": \"    def read_function(self, call):\\n        try:\\n            resolved_path = self._resolve_path(call.get('path'))\\n            with open(resolved_path, 'r', encoding='utf-8') as f:\\n                source = f.read()\\n        except FileNotFoundError:\\n            raise Exception(f\\\"File not found: {resolved_path}\\\")\\n        except Exception as e:\\n            raise Exception(f\\\"Error reading file: {resolved_path} - {str(e)}\\\")\\n\\n        func_source = get_function_source(source, call.get('func_name'))\\n        if func_source is None:\\n            raise Exception(f\\\"Function '{call.get('func_name')}' not found in file: {resolved_path}\\\")\\n\\n        return f\\\"<tool_result name='read_function' status='success'>\\\\n{func_source}\\\\n</tool_result>\\\"\"}}",
+  "moved_at": "2026-05-05 23:19:50",
+  "nonce": "96354b09",
+  "problem": "함수 읽기 도구가 대상 누락과 경로 오류를 더 명확히 보고하도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"read_function\", \"content\": \"    def read_function(self, call):\\n        try:\\n            resolved_path = self._resolve_path(call.get('path'))\\n            with open(resolved_path, 'r', encoding='utf-8') as f:\\n                source = f.read()\\n        except FileNotFoundError:\\n            raise Exception(f\\\"File not found: {resolved_path}\\\")\\n        except Exception as e:\\n            raise Exception(f\\\"Error reading file: {resolved_path} - {str(e)}\\\")\\n\\n        func_source = get_function_source(source, call.get('func_name'))\\n        if func_source is None:\\n            raise Exception(f\\\"Function '{call.get('func_name')}' not found in file: {resolved_path}\\\")\\n\\n        return f\\\"<tool_result name='read_function' status='success'>\\\\n{func_source}\\\\n</tool_result>\\\"\"}}",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "<tool_result name='replace_function' status='error'>Unsafe generated content blocked: use a specific exception type instead of except Exception</tool_result>",
+    "rejected_at": "2026-05-05 23:19:50"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:read_function"
+}

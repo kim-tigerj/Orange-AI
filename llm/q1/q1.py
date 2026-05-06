@@ -48,10 +48,22 @@ IMPROVE_ONCE_SYSTEM_PROMPT = """당신은 q1 자가개선 작업 실행기다.
 - execute_bash는 호출하지 않는다.
 - 오류를 성공처럼 숨기지 않고 기존 실패 흐름을 유지한다.
 """
-SELF_PLAY_SYSTEM_PROMPT = """당신은 q1 정팀장이다. 주어진 함수에 대해 실제 개선이 필요하면 정확히 하나의 write tool_call(replace, replace_function, write_file 중 하나)을 출력한다.
-개선이 불필요하면 "DONE_NO_CHANGE"만 출력한다.
-그 외 텍스트, 설명, 주석은 출력하지 않는다.
-허용 경로 밖, 위험 패턴(os.system, subprocess., shutil.rmtree, eval, exec, __import__, socket.)은 사용하지 않는다.
+SELF_PLAY_SYSTEM_PROMPT = """당신은 q1 정팀장이다. 주어진 함수에 대해 실제 개선이 필요하면, 정확히 하나의 도구 호출을 아래 형식으로 출력한다. 그 외 텍스트나 설명은 출력하지 않는다.
+
+<tool_call>
+{"name": "replace_function", "arguments": {"path": "llm/q1/q1.py", "func_name": "함수명", "content": "수정된 함수 전체 소스"}}
+</tool_call>
+
+허용 도구: replace_function, replace, write_file (write 계열). read_function, read_file, list_functions, list_directory (read 계열).
+허용 경로: llm/q1/q1.py, llm/q1/core/handlers.py, llm/q1/core/analyzer.py, llm/q1/q1_server.py, llm/q1/persona/PROMPT.md, llm/q1/dataset/lora/WRITE_SAMPLES.md.
+위험 패턴(os.system, subprocess., shutil.rmtree, eval, exec, __import__, socket.) 사용 금지.
+보호 함수는 수정하지 않는다: _resolve_path, _ensure_write_allowed, _reject_unsafe_generated_content, _replacement_function_node, _assert_function_boundary_preserved, replace, replace_function, write_file, execute_bash, run_validation_suite, apply_proposal, gate_proposal, static_reject_proposal.
+replace_function은 대상 함수 하나만 포함한다. 새 helper 함수, placeholder(pass), TODO, 미구현 최적화 주석을 추가하지 않는다.
+긴 함수 전체 교체보다 작은 replace를 우선한다. 출력이 길어질 것 같으면 DONE_NO_CHANGE를 출력한다.
+except Exception은 새로 만들지 않는다. 기존 코드가 그렇더라도 더 넓은 예외 처리를 추가하지 않는다.
+운영 메시지는 기존 파일 스타일을 따르고 불필요한 영어 문구를 추가하지 않는다.
+
+개선이 불필요하면 정확히 "DONE_NO_CHANGE" 한 줄만 출력한다.
 """
 RESPONSE_LOG = os.path.join(PROJECT_ROOT, "llm", "log", "RESPONSE_HISTORY.md")
 PROPOSAL_ROOT = os.path.join(PROJECT_ROOT, "llm", "q1", "proposal")
@@ -211,6 +223,27 @@ DEFAULT_SEED_FUNCTION_JOBS = [
         "디렉터리 목록 도구가 누락 경로와 파일/디렉터리 구분을 더 안정적으로 처리하도록 개선한다.",
     ),
 ]
+PROTECTED_SELF_PLAY_FUNCTIONS = {
+    "_resolve_path",
+    "_ensure_write_allowed",
+    "_reject_unsafe_generated_content",
+    "_replacement_function_node",
+    "_assert_function_boundary_preserved",
+    "replace",
+    "replace_function",
+    "write_file",
+    "execute_bash",
+    "run_validation_suite",
+    "verify_changed_python_imports",
+    "snapshot_file_contents",
+    "restore_file_contents",
+    "apply_proposal",
+    "gate_proposal",
+    "static_reject_proposal",
+    "parse_tool_calls",
+    "parse_proposal_tool_call",
+}
+MAX_SELF_PLAY_FUNCTION_CHARS = 6000
 DISCOVERY_SEED_PATHS = [
     "llm/q1/q1.py",
     "llm/q1/core/handlers.py",
@@ -483,8 +516,9 @@ class Q1Engine:
                 self.last_response_cache_hit = True
                 return cached
         payload = json.dumps({"messages": messages, "max_tokens": max_tokens}).encode("utf-8")
+        request_url = f"{self.server_url}/generate_stream"
         request = urllib.request.Request(
-            f"{self.server_url}/generate_stream",
+            request_url,
             data=payload,
             headers={"Content-Type": "application/json"},
             method="POST",
@@ -504,15 +538,15 @@ class Q1Engine:
                         self.last_generation_streamed = True
                         console.print(text, end="", markup=False)
                     elif event_type == "error":
-                        raise RuntimeError(f"q1 server error: {event.get('error')}")
+                        raise RuntimeError(f"q1 server error: {event.get('error')} at {request_url}")
                     elif event_type == "done":
                         break
         except urllib.error.HTTPError as exc:
             if exc.code == 404:
                 return self.generate_response_server_blocking(messages, max_tokens, started=started, disable_cache=disable_cache)
-            raise RuntimeError(f"q1 server error: HTTP {exc.code}") from exc
+            raise RuntimeError(f"q1 server error: HTTP {exc.code} at {request_url} - {exc.reason}") from exc
         except urllib.error.URLError as exc:
-            raise RuntimeError(f"q1 server unavailable at {self.server_url}: {exc}") from exc
+            raise RuntimeError(f"q1 server unavailable at {request_url}: {exc.reason}") from exc
         self.last_generation_elapsed_ms = int((time.monotonic() - started) * 1000)
         text = "".join(chunks)
         if not disable_cache:
@@ -592,7 +626,7 @@ class Q1Engine:
         self.last_tool_results = []
         try:
             self.ensure_model_loaded = lambda: None
-            self.generate_response = lambda messages, max_tokens: (
+            self.generate_response = lambda messages, max_tokens, *, disable_cache=False: (
                 '<tool_call name="read_function" path="llm/q1/q1.py" func_name="chat" />'
             )
             self.save_response = lambda response: None
@@ -986,6 +1020,14 @@ class Q1Engine:
             console.print(f"status: {data.get('status', '(missing)')}")
             console.print(f"message: {data.get('message', '(missing)')}")
             raise SystemExit(1)
+
+        # 추가: 서버 상태 확인 로그 출력
+        if not ok:
+            console.print(f"[bold red]Server health check failed before entering the loop.[/bold red]")
+            console.print(f"url: {self.server_url}")
+            console.print(f"elapsed_ms: {elapsed_ms}")
+            console.print(f"error: {data.get('status', '(missing)')} - {data.get('message', '(missing)')}")
+            raise SystemExit(1)
     def _check_server_health(self):
         request = urllib.request.Request(f"{self.server_url}/health", method="GET")
         try:
@@ -1117,26 +1159,20 @@ class Q1Engine:
         os.makedirs(todo_dir, exist_ok=True)
         safe_path = path.replace("/", "_").replace(".", "_")
         job_path = os.path.join(todo_dir, f"function_{safe_path}__{func_name}.md")
-    
+
         # Check for existing job files and avoid duplicates
         existing_jobs = [f for f in os.listdir(todo_dir) if f.startswith(f"function_{safe_path}__{func_name}")]
         if existing_jobs:
             # Check if the goal is already covered in existing jobs
-            goal_covered = False
-            for job in existing_jobs:
-                with open(os.path.join(todo_dir, job), "r", encoding="utf-8") as f:
-                    job_content = f.read()
-                    if f"## Goal\n{goal}" in job_content:
-                        goal_covered = True
-                        break
+            goal_covered = any(f"## Goal\n{goal}" in open(os.path.join(todo_dir, job), "r", encoding="utf-8").read() for job in existing_jobs)
             if goal_covered:
                 console.print(f"[bold yellow]Job already exists with the same goal:[/bold yellow] {job_path}")
                 return "DONE_NO_CHANGE"
-    
+
         # If no existing job covers the goal, create a new job file
         if os.path.exists(job_path):
             job_path = os.path.join(todo_dir, f"function_{safe_path}__{func_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md")
-    
+
         content = "\n".join([
             f"# q1 Function Job: {target}",
             "",
@@ -1179,21 +1215,44 @@ class Q1Engine:
         skipped = 0
         skipped_recent = 0
         skipped_failed = 0
-        for target, goal in DEFAULT_SEED_FUNCTION_JOBS:
+        available_targets = [(target, goal) for target, goal in DEFAULT_SEED_FUNCTION_JOBS if target not in existing_targets and target not in failed_targets and recent_verdicts.get(target) not in {"DONE", "NO_CHANGE"}]
+
+        for target, goal in available_targets:
             if created >= count:
                 break
-            if target in existing_targets:
-                skipped += 1
-                continue
-            if target in failed_targets:
-                skipped_failed += 1
-                continue
-            if recent_verdicts.get(target) in {"DONE", "NO_CHANGE"}:
-                skipped_recent += 1
-                continue
             self.create_function_job(target, goal)
             existing_targets.add(target)
             created += 1
+
+        if created < count:
+            for target, goal in DEFAULT_SEED_FUNCTION_JOBS:
+                if created >= count:
+                    break
+                if target in existing_targets or target in failed_targets or recent_verdicts.get(target) in {"DONE", "NO_CHANGE"}:
+                    continue
+                self.create_function_job(target, goal)
+                existing_targets.add(target)
+                created += 1
+
+        if created < count:
+            for target, goal in DEFAULT_SEED_FUNCTION_JOBS:
+                if created >= count:
+                    break
+                if target in existing_targets or target in failed_targets:
+                    continue
+                self.create_function_job(target, goal)
+                existing_targets.add(target)
+                created += 1
+
+        if created < count:
+            for target, goal in DEFAULT_SEED_FUNCTION_JOBS:
+                if created >= count:
+                    break
+                if target in existing_targets:
+                    continue
+                self.create_function_job(target, goal)
+                existing_targets.add(target)
+                created += 1
 
         console.print("[bold]q1 seed default jobs[/bold]")
         console.print(f"created: {created}")
@@ -1611,7 +1670,11 @@ class Q1Engine:
             if target in existing_targets:
                 skipped += 1
                 continue
-            if recent_verdicts.get(target) in {"DONE", "NO_CHANGE", "FAILED"}:
+            recent_verdict = recent_verdicts.get(target)
+            if recent_verdict in {"DONE", "NO_CHANGE", "FAILED"}:
+                skipped_repaired += 1
+                continue
+            if recent_verdict == "RETRY" and self.extract_report_field(text, "retry_count") >= 3:
                 skipped_repaired += 1
                 continue
             self.create_function_job(target, goal)
@@ -1827,9 +1890,21 @@ class Q1Engine:
         if seed_candidates:
             console.print(f"seed_next_candidate: {seed_candidates[0]}")
         console.print(f"next_action: {next_action}")
-        console.print(f"queue_status: {'empty' if not runnable else 'has runnable jobs'}")
-        exhausted = not runnable and not seed_candidates
-        console.print(f"bottleneck: {'seed candidates exhausted' if exhausted else 'response log size' if response_bytes > 1000000 else 'none detected'}")
+        queue_status = 'empty' if not runnable else 'has runnable jobs'
+        console.print(f"queue_status: {queue_status}")
+        if queue_status == 'empty':
+            if not seed_candidates:
+                console.print(f"bottleneck: seed candidates exhausted")
+                console.print(f"next_step: refill seed candidates")
+            elif response_bytes > 1000000:
+                console.print(f"bottleneck: response log size exceeds 1MB")
+                console.print(f"next_step: clear response log")
+            else:
+                console.print(f"bottleneck: none detected")
+                console.print(f"next_step: wait for new jobs")
+        else:
+            console.print(f"bottleneck: none detected")
+            console.print(f"next_step: process runnable jobs")
     def print_latest_failure(self):
         report_dir = os.path.join(PROJECT_ROOT, "llm", "q1", "job", "report")
         if not os.path.exists(report_dir):
@@ -1868,17 +1943,22 @@ class Q1Engine:
             )
             if not has_failure:
                 continue
-            console.print("[bold]q1 latest failure[/bold]")
+            console.print("[bold]q1 latest failure summary[/bold]")
             console.print(f"file: {os.path.relpath(path, PROJECT_ROOT)}")
             console.print(f"job: {job}")
             console.print(f"timestamp: {self.extract_report_field(text, 'timestamp')}")
             console.print(f"verdict: {verdict}")
-            for name, error in errors[:3]:
-                console.print(f"tool_error: {name}: {error.strip()}")
+            if errors:
+                console.print(f"tool_errors: {len(errors)}")
+                for name, error in errors[:3]:
+                    console.print(f"  - {name}: {error.strip()[:100]}{'...' if len(error.strip()) > 100 else ''}")
             if validation_failed:
                 console.print("validation_failure: present")
+            failure_reason = self.extract_report_field(text, "failure_reason")
+            if failure_reason:
+                console.print(f"failure_reason: {failure_reason.strip()[:100]}{'...' if len(failure_reason.strip()) > 100 else ''}")
             return
-        console.print("[bold]q1 latest failure[/bold]")
+        console.print("[bold]q1 latest failure summary[/bold]")
         console.print("none")
     def list_md_files(self, directory, exclude=None):
         exclude = exclude or set()
@@ -2059,7 +2139,7 @@ class Q1Engine:
                     continue
                 with open(full_path, "rb") as f:
                     snapshot[path] = hashlib.sha256(f.read()).hexdigest()
-            except (OSError, ValueError) as e:
+            except (OSError, ValueError, FileNotFoundError, PermissionError, IOError) as e:
                 snapshot[path] = f"ERROR: {e}"
         return snapshot
     def snapshot_file_contents(self, paths):
@@ -2547,6 +2627,13 @@ class Q1Engine:
         ]
         archived = 0
         kept = 0
+        console.print("[bold]q1 archive skipped[/bold]")
+        console.print(f"Total jobs to process: {len(jobs)}")
+        console.print(f"[bold]Pre-Loop Report[/bold]")
+        jobs_with_target = sum(1 for job_path in jobs if self.extract_target_function(open(job_path, 'r', encoding='utf-8').read()))
+        jobs_without_target = sum(1 for job_path in jobs if not self.extract_target_function(open(job_path, 'r', encoding='utf-8').read()))
+        console.print(f"Jobs with target function to be kept: {jobs_with_target}")
+        console.print(f"Jobs without target function to be archived: {jobs_without_target}")
         for job_path in jobs:
             with open(job_path, "r", encoding="utf-8") as f:
                 job = f.read()
@@ -2556,11 +2643,16 @@ class Q1Engine:
             self.write_skip_report(os.path.relpath(job_path, PROJECT_ROOT), "missing Target Function")
             self.archive_job(job_path)
             archived += 1
-        self.write_latest_summary()
-        console.print("[bold]q1 archive skipped[/bold]")
         console.print(f"archived: {archived}")
         console.print(f"kept: {kept}")
         console.print(f"summary: archived_missing_target={archived}, kept_runnable={kept}")
+        console.print(f"Detailed report: archived {archived} jobs due to missing target function, kept {kept} runnable jobs.")
+        console.print(f"Jobs archived due to missing target function: {archived}")
+        console.print(f"Runnable jobs kept: {kept}")
+        console.print(f"[bold]Archive Skipped Summary[/bold]")
+        console.print(f"Total jobs processed: {len(jobs)}")
+        console.print(f"Archived jobs due to missing target function: {archived}")
+        console.print(f"Runnable jobs kept: {kept}")
     def dry_run_auto(self, limit):
         todo_dir = os.path.join(PROJECT_ROOT, "llm", "q1", "job", "todo")
         os.makedirs(todo_dir, exist_ok=True)
@@ -2578,6 +2670,7 @@ class Q1Engine:
             console.print(f"next_action: {self.next_manual_job_command()}")
             console.print("reason: todo directory is empty")
             return
+        console.print("Processing jobs in the following order:")
         for index, job_path in enumerate(jobs, start=1):
             with open(job_path, "r", encoding="utf-8") as f:
                 job = f.read()
@@ -2594,14 +2687,22 @@ class Q1Engine:
         if run_count == 0:
             console.print(f"next_action: {self.next_manual_job_command()}")
             console.print("reason: no runnable jobs found")
+        else:
+            console.print("reason: auto-improve will process the above RUN jobs in order")
+            console.print("auto-improve execution order:")
+            for index, job_path in enumerate(jobs, start=1):
+                rel_path = os.path.relpath(job_path, PROJECT_ROOT)
+                target = self.extract_target_function(job)
+                if target:
+                    console.print(f"{index}. {rel_path} -> {target}")
 
     def cycle_once(self, limit, max_no_change=0, compact_logs=False):
         console.print('[bold]q1 cycle once[/bold]')
         self.server_health()
         self.archive_skipped()
         self.dry_run_auto(limit)
-        self.auto_improve(limit, max_no_change=max_no_change)
-        self.validate()
+        if self.auto_improve(limit, max_no_change=max_no_change):
+            self.validate()
         if compact_logs:
             self.compact_logs()
         self.print_status()
@@ -2721,22 +2822,8 @@ class Q1Engine:
             shutil.copy2(path, archive_path)
             with open(path, "r", encoding="utf-8", errors="replace") as f:
                 text = f.read()
-            tail = text[-keep_chars:]
-            compacted_text = "\n".join([
-                f"# Compacted {name}",
-                "",
-                f"- compacted_at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-                f"- original_bytes: {size}",
-                f"- archive: {os.path.relpath(archive_path, PROJECT_ROOT)}",
-                f"- kept_tail_chars: {keep_chars}",
-                "",
-                "## Latest Summary",
-                summary_text or "(missing)",
-                "",
-                "## Recent Tail",
-                tail.strip(),
-                "",
-            ])
+            tail = text[-keep_chars:].strip()
+            compacted_text = f"# Compacted {name}\n\n- compacted_at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n- original_bytes: {size}\n- archive: {os.path.relpath(archive_path, PROJECT_ROOT)}\n- kept_tail_chars: {keep_chars}\n\n## Latest Summary\n{summary_text or '(missing)'}\n\n## Recent Tail\n{tail}\n"
             with open(path, "w", encoding="utf-8") as f:
                 f.write(compacted_text)
             compacted.append((name, size, os.path.getsize(path)))
@@ -2765,27 +2852,69 @@ class Q1Engine:
         console.print(f"skipped: {len(skipped)}")
         console.print(f"report: {os.path.relpath(report_path, PROJECT_ROOT)}")
 
+        # Optimize token usage by removing unnecessary whitespace and newlines
+        with open(report_path, "r", encoding="utf-8") as f:
+            optimized_text = f.read().replace('\n\n', '\n').strip()
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write(optimized_text)
+
     def extract_target_function(self, job_text):
         matches = re.findall(r"^-\s*`([^`]+:[\w_]+)`\s*$", job_text, re.MULTILINE)
-        return matches[0] if matches else None
+        if matches:
+            # 중복된 함수를 제거하고 첫 번째 함수 반환
+            unique_matches = list(dict.fromkeys(matches))
+            # 잘못된 skip을 줄이기 위해 첫 번째 함수만 반환
+            return unique_matches[0] if unique_matches else None
+        else:
+            # 로깅 또는 추가적인 처리 로직 추가 가능
+            logging.warning("No target function found in job_text: %s", job_text)
+            return None
     def extract_job_goal(self, job_text):
         match = re.search(r"^## Goal\s+(.+?)(?:\n## |\Z)", job_text, re.MULTILINE | re.DOTALL)
         if not match:
             return None
-        return " ".join(line.strip() for line in match.group(1).splitlines() if line.strip())
+        goal_lines = match.group(1).splitlines()
+        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]
+        cleaned_text = ' '.join(cleaned_lines).replace('\n', ' ')
+        # 간결한 목표 추출을 위해 문장 단위로 분리하고 첫 번째 문장 사용
+        sentences = cleaned_text.split('. ')
+        main_goal = sentences[0].strip() if sentences else cleaned_text.strip()
+        # 자연어 처리를 사용하여 문장 요약 개선
+        if len(main_goal) > 50:
+            from transformers import pipeline
+            summarizer = pipeline('summarization')
+            main_goal = summarizer(main_goal, max_length=50, min_length=25, do_sample=False)[0]['summary_text']
+        # 추가로 프롬프트 품질 향상을 위해 간결성 및 명확성 검사
+        if len(main_goal) > 50:
+            main_goal = ' '.join(main_goal.split()[:10])  # 첫 10단어만 사용
+        # 명확성 및 간결성 재검사
+        if len(main_goal.split()) > 10:
+            main_goal = ' '.join(main_goal.split()[:10])
+        # 최종적으로 문장의 첫 문장만 사용하여 명확성과 간결성 유지
+        final_goal = main_goal.split('. ')[0].strip() if '. ' in main_goal else main_goal.strip()
+        return final_goal if final_goal else None
     def archive_job(self, job_path, status="done"):
         archive_dir = os.path.join(PROJECT_ROOT, "llm", "q1", "job", status)
         os.makedirs(archive_dir, exist_ok=True)
         name = os.path.basename(job_path)
-        target = os.path.join(archive_dir, name)
-        if os.path.exists(target):
-            base, ext = os.path.splitext(name)
+        base, ext = os.path.splitext(name)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        target = os.path.join(archive_dir, f"{base}_{timestamp}{ext}")
+        counter = 0
+        while os.path.exists(target):
+            counter += 1
+            target = os.path.join(archive_dir, f"{base}_{timestamp}_{counter}{ext}")
+        try:
+            os.replace(job_path, target)
+        except FileExistsError:
+            # In case of a race condition, retry with a new timestamp
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            counter = 1
+            target = os.path.join(archive_dir, f"{base}_{timestamp}{ext}")
+            counter = 0
             while os.path.exists(target):
-                target = os.path.join(archive_dir, f"{base}_{timestamp}_{counter}{ext}")
                 counter += 1
-        os.replace(job_path, target)
+                target = os.path.join(archive_dir, f"{base}_{timestamp}_{counter}{ext}")
+            os.replace(job_path, target)
     def write_skip_report(self, job_path, reason):
         report_dir = os.path.join(PROJECT_ROOT, "llm", "q1", "job", "report")
         os.makedirs(report_dir, exist_ok=True)
@@ -3047,9 +3176,9 @@ class Q1Engine:
         new_content = old_content if old_content.endswith("\n") else old_content + "\n"
         new_content += marker
         proposed_tool_call = (
-            f'<tool_call name="write_file" path="{path}">\n'
-            f'{new_content}'
-            '</tool_call>'
+            '<tool_call>\n'
+            + json.dumps({"name": "write_file", "arguments": {"path": path, "content": new_content}}, ensure_ascii=False)
+            + '\n</tool_call>'
         )
         return self.create_proposal(
             target=path,
@@ -3077,7 +3206,9 @@ class Q1Engine:
                     target, goal = "llm/q1/q1.py:next_manual_job_command", command
                 path, func_name = parse_function_target(target)
                 tool_call = (
-                    f'<tool_call name="read_function" path="{path}" func_name="{func_name}" />'
+                    '<tool_call>\n'
+                    + json.dumps({"name": "read_function", "arguments": {"path": path, "func_name": func_name}}, ensure_ascii=False)
+                    + '\n</tool_call>'
                 )
                 problem = goal
                 rationale = (
@@ -3087,7 +3218,9 @@ class Q1Engine:
                 target, goal = DEFAULT_SEED_FUNCTION_JOBS[(existing_count + index) % len(DEFAULT_SEED_FUNCTION_JOBS)]
                 path, func_name = parse_function_target(target)
                 tool_call = (
-                    f'<tool_call name="read_function" path="{path}" func_name="{func_name}" />'
+                    '<tool_call>\n'
+                    + json.dumps({"name": "read_function", "arguments": {"path": path, "func_name": func_name}}, ensure_ascii=False)
+                    + '\n</tool_call>'
                 )
                 problem = goal
                 rationale = (
@@ -3106,6 +3239,7 @@ class Q1Engine:
             console.print(f"- {proposal['id']} {proposal['target']}: {proposal['problem']}")
 
     def build_self_play_prompt(self, target, func_source, problem):
+        request_nonce = uuid.uuid4().hex
         user_block = (
             f"target: {target}\n"
             f"problem: {problem}\n"
@@ -3113,7 +3247,8 @@ class Q1Engine:
             "---\n"
             f"{func_source}\n"
             "---\n"
-            "출력 규칙: 위 시스템 지침 그대로."
+            "출력 규칙: 위 시스템 지침 그대로.\n"
+            f"<!-- request_nonce: {request_nonce} -->"
         )
         return [
             {"role": "system", "content": SELF_PLAY_SYSTEM_PROMPT},
@@ -3132,13 +3267,38 @@ class Q1Engine:
             return {"kind": "malformed", "calls": [], "reason": f"exception: {exc}"}
         if not calls:
             return {"kind": "malformed", "calls": [], "reason": "no_tool_call"}
+        raw_tool_call_count = len(re.findall(r"<tool_call(?:\s[^>]*)?>", text, flags=re.DOTALL))
+        if raw_tool_call_count > 0 and raw_tool_call_count != len(calls):
+            return {"kind": "malformed", "calls": calls, "reason": "unparsed_tool_call"}
+        if raw_tool_call_count == 0:
+            candidate = text
+            fence_match = re.match(r"^```(?:json)?\s*(.*?)\s*```$", candidate, re.DOTALL)
+            if fence_match:
+                candidate = fence_match.group(1).strip()
+            if not (candidate.startswith("{") and candidate.endswith("}")):
+                return {"kind": "malformed", "calls": calls, "reason": "extra_text"}
+        else:
+            remaining = re.sub(r"<tool_call>\s*\{.*?\}\s*</tool_call>", "", text, flags=re.DOTALL)
+            remaining = re.sub(r"<tool_call\s+.*?/>", "", remaining, flags=re.DOTALL)
+            remaining = re.sub(r"<tool_call\s+[^>]*>.*?</tool_call>", "", remaining, flags=re.DOTALL)
+            if remaining.strip():
+                return {"kind": "malformed", "calls": calls, "reason": "extra_text"}
+        if len(calls) != 1:
+            return {"kind": "malformed", "calls": calls, "reason": "multiple_tool_calls"}
+        normalized = self.canonical_tool_call_text(calls[0])
         write_tools = {"replace", "replace_function", "write_file"}
-        if any(call.get("name") in write_tools for call in calls):
-            return {"kind": "write", "calls": calls, "reason": "ok"}
+        if calls[0].get("name") in write_tools:
+            return {"kind": "write", "calls": calls, "reason": "ok", "normalized_tool_call": normalized}
         read_tools = {"read_function", "read_file", "list_functions", "list_directory", "list_files"}
-        if any(call.get("name") in read_tools for call in calls):
-            return {"kind": "read_only", "calls": calls, "reason": "ok"}
+        if calls[0].get("name") in read_tools:
+            return {"kind": "read_only", "calls": calls, "reason": "ok", "normalized_tool_call": normalized}
         return {"kind": "malformed", "calls": calls, "reason": "no_read_or_write_tool"}
+
+    def canonical_tool_call_text(self, call):
+        name = call.get("name")
+        arguments = {key: value for key, value in call.items() if key != "name"}
+        payload = {"name": name, "arguments": arguments}
+        return "<tool_call>\n" + json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n</tool_call>"
 
     def self_play_model_one(self, target, problem):
         try:
@@ -3149,6 +3309,31 @@ class Q1Engine:
             return None
         match = re.search(r"<tool_result name='read_function' status='success'>\n(.*)\n</tool_result>\s*$", result, re.DOTALL)
         func_source = match.group(1) if match else result
+        if len(func_source) > MAX_SELF_PLAY_FUNCTION_CHARS:
+            proposal = self.create_proposal(
+                target=target,
+                problem=problem,
+                proposed_tool_call="DONE_NO_CHANGE",
+                rationale=(
+                    "model self-play skipped before inference because target function source is too long "
+                    f"({len(func_source)} chars > {MAX_SELF_PLAY_FUNCTION_CHARS})"
+                ),
+                role="planner",
+                risk="low",
+                source="self-play-model-skip-v1",
+                model_call_metadata={
+                    "server_url": self.server_url,
+                    "elapsed_ms": 0,
+                    "cache_hit": False,
+                    "skipped": True,
+                    "skip_reason": "source_too_long",
+                    "source_chars": len(func_source),
+                    "max_source_chars": MAX_SELF_PLAY_FUNCTION_CHARS,
+                },
+                model_output_raw="DONE_NO_CHANGE",
+            )
+            console.print(f"self_play_model_one: id={proposal['id']} target={target} kind=skipped source_chars={len(func_source)}")
+            return proposal
         messages = self.build_self_play_prompt(target, func_source, problem)
         started = time.monotonic()
         text = self.generate_response(messages, max_tokens=1024, disable_cache=True)
@@ -3156,6 +3341,8 @@ class Q1Engine:
         parsed = self.parse_model_proposal_text(text)
         if parsed["kind"] == "no_change":
             proposed_tool_call = "DONE_NO_CHANGE"
+        elif parsed.get("normalized_tool_call"):
+            proposed_tool_call = parsed["normalized_tool_call"]
         else:
             proposed_tool_call = text
         prompt_payload = json.dumps(messages, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -3179,6 +3366,33 @@ class Q1Engine:
         console.print(f"self_play_model_one: id={proposal['id']} target={target} kind={parsed['kind']} elapsed_ms={elapsed_ms}")
         return proposal
 
+    def _pick_self_play_target(self, existing_count, index):
+        command = self.next_manual_job_command()
+        if command.startswith("--new-function-job "):
+            match = re.match(r'--new-function-job\s+(\S+)\s+--goal\s+"(.+)"$', command)
+            if match:
+                target, goal = match.groups()
+                try:
+                    _, func_name = parse_function_target(target)
+                except ValueError:
+                    return self._pick_default_self_play_target(existing_count, index)
+                if func_name not in PROTECTED_SELF_PLAY_FUNCTIONS:
+                    return target, goal
+            return self._pick_default_self_play_target(existing_count, index)
+        return self._pick_default_self_play_target(existing_count, index)
+
+    def _pick_default_self_play_target(self, existing_count, index):
+        total = len(DEFAULT_SEED_FUNCTION_JOBS)
+        for offset in range(total):
+            candidate = DEFAULT_SEED_FUNCTION_JOBS[(existing_count + index + offset) % total]
+            try:
+                _, func_name = parse_function_target(candidate[0])
+            except ValueError:
+                continue
+            if func_name not in PROTECTED_SELF_PLAY_FUNCTIONS:
+                return candidate
+        return DEFAULT_SEED_FUNCTION_JOBS[(existing_count + index) % total]
+
     def self_play_model(self, cycles=1):
         if not self._check_server_health():
             raise SystemExit("q1 server not reachable; refusing silent fallback")
@@ -3186,15 +3400,7 @@ class Q1Engine:
         kind_counts = {}
         existing_count = self.proposal_count()
         for index in range(cycles):
-            command = self.next_manual_job_command()
-            if command.startswith("--new-function-job "):
-                match = re.match(r'--new-function-job\s+(\S+)\s+--goal\s+"(.+)"$', command)
-                if match:
-                    target, problem = match.groups()
-                else:
-                    target, problem = DEFAULT_SEED_FUNCTION_JOBS[(existing_count + index) % len(DEFAULT_SEED_FUNCTION_JOBS)]
-            else:
-                target, problem = DEFAULT_SEED_FUNCTION_JOBS[(existing_count + index) % len(DEFAULT_SEED_FUNCTION_JOBS)]
+            target, problem = self._pick_self_play_target(existing_count, index)
             proposal = self.self_play_model_one(target, problem)
             if proposal is None:
                 continue
@@ -3207,6 +3413,7 @@ class Q1Engine:
         console.print(f"kind_counts: {kind_counts}")
         for proposal in created:
             console.print(f"- {proposal['id']} {proposal['target']}")
+        return {"created": len(created), "kind_counts": kind_counts}
 
     def list_proposals(self, status="pending", limit=20):
         self.ensure_proposal_dirs()
@@ -3249,6 +3456,14 @@ class Q1Engine:
     def gate_result(self, name, ok, message):
         return {"name": name, "ok": ok, "message": message}
 
+    def gate_failure_reason(self, results):
+        failures = [
+            f"{item.get('name', 'gate')}: {item.get('message', '(missing)')}"
+            for item in results
+            if not item.get("ok")
+        ]
+        return "; ".join(failures) if failures else "gate failed"
+
     def parse_proposal_tool_call(self, proposal):
         proposed = proposal.get("proposed_tool_call", "")
         if proposed.strip() == "DONE_NO_CHANGE":
@@ -3278,6 +3493,11 @@ class Q1Engine:
         return DEFAULT_IMPROVE_ALLOWED_PATHS
 
     def static_reject_proposal(self, proposal, calls):
+        target = proposal.get("target", "")
+        if ":" in target:
+            target_func = target.rsplit(":", 1)[1]
+            if target_func in PROTECTED_SELF_PLAY_FUNCTIONS:
+                return f"protected target function: {target_func}"
         write_tools = {"replace", "replace_function", "write_file"}
         write_calls = [call for call in calls if call.get("name") in write_tools]
         if len(write_calls) > 1:
@@ -3290,6 +3510,41 @@ class Q1Engine:
         for pattern in dangerous:
             if pattern in content:
                 return f"dangerous pattern: {pattern}"
+        for call in write_calls:
+            if call.get("name") == "replace_function":
+                validation_error = self.validate_replace_function_call(call)
+                if validation_error:
+                    return validation_error
+        return None
+
+    def validate_replace_function_call(self, call):
+        path = call.get("path")
+        func_name = call.get("func_name")
+        content = call.get("content")
+        if not path or not func_name or content is None:
+            return "replace_function requires path, func_name, and content"
+        if not path.endswith(".py"):
+            return None
+        try:
+            content = self.tool_handler._strip_code_fence(content)
+            self.tool_handler._reject_unsafe_generated_content(path, content, func_name=func_name)
+            full_path = self.tool_handler._resolve_path(path)
+            with open(full_path, "r", encoding="utf-8") as f:
+                source = f.read()
+            tree = ast.parse(source)
+            target = next(
+                (
+                    node for node in ast.walk(tree)
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == func_name
+                ),
+                None,
+            )
+            if not target:
+                return f"replace_function target not found: {func_name}"
+            replacement_node = self.tool_handler._replacement_function_node(content, func_name)
+            self.tool_handler._assert_function_boundary_preserved(target, replacement_node)
+        except Exception as exc:
+            return f"replace_function validation failed: {exc}"
         return None
 
     def gate_proposal(self, proposal_id):
@@ -3369,8 +3624,9 @@ class Q1Engine:
     def apply_proposal(self, proposal_id):
         ok, proposal, calls, path = self.gate_proposal(proposal_id)
         if not ok:
+            gate_reason = self.gate_failure_reason((proposal.get("gate_result") or {}).get("results", []))
             proposal["rejection"] = {
-                "reason": "gate failed",
+                "reason": gate_reason,
                 "rejected_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
             destination = self.move_proposal(proposal, path, "rejected")
@@ -3449,14 +3705,34 @@ class Q1Engine:
         self.ensure_proposal_dirs()
         return sum(len(self.list_json_files(directory)) for directory in self.proposal_dirs().values())
 
-    def proposal_autopilot(self, cycles=1, apply_limit=20):
+    def proposal_autopilot(self, cycles=1, apply_limit=20, mode="deterministic"):
+        if mode not in {"deterministic", "model"}:
+            raise SystemExit(f"unknown autopilot mode: {mode}")
+        if mode == "model" and not self._check_server_health():
+            raise SystemExit("q1 server not reachable; refusing silent fallback")
         console.print("[bold]q1 proposal autopilot[/bold]")
         applied = 0
         failed = 0
+        kind_counts = {} if mode == "deterministic" else {"write": 0, "no_change": 0, "read_only": 0, "malformed": 0}
+        existing_count = self.proposal_count()
         for cycle in range(1, cycles + 1):
             console.print(f"[bold]cycle {cycle}/{cycles}[/bold]")
-            self.self_play(1)
-            for proposal_id in self.pending_proposal_ids()[:apply_limit]:
+            proposal_ids = []
+            if mode == "deterministic":
+                self.self_play(1)
+                proposal_ids = self.pending_proposal_ids()[:apply_limit]
+            else:
+                target, problem = self._pick_self_play_target(existing_count, cycle - 1)
+                proposal = self.self_play_model_one(target, problem)
+                if proposal is None:
+                    continue
+                raw = proposal.get("model_output_raw", "")
+                if raw:
+                    parsed = self.parse_model_proposal_text(raw)
+                    kind = parsed["kind"]
+                    kind_counts[kind] = kind_counts.get(kind, 0) + 1
+                proposal_ids = [proposal["id"]]
+            for proposal_id in proposal_ids:
                 try:
                     self.apply_proposal(proposal_id)
                     applied += 1
@@ -3473,6 +3749,13 @@ class Q1Engine:
         console.print(f"cycles: {cycles}")
         console.print(f"applied_or_accepted: {applied}")
         console.print(f"failed_or_rejected: {failed}")
+        console.print(f"kind_counts: {kind_counts}")
+        return {
+            "cycles": cycles,
+            "applied_or_accepted": applied,
+            "failed_or_rejected": failed,
+            "kind_counts": kind_counts,
+        }
 
     def proposal_lora_label(self, proposal, status):
         if status == "rejected":
@@ -3495,11 +3778,32 @@ class Q1Engine:
         }
         return scores.get(label, 0.5)
 
+    def proposal_rejection_reason(self, proposal):
+        gate_result = proposal.get("gate_result") or {}
+        gate_reason = self.gate_failure_reason(gate_result.get("results", []))
+        rejection = proposal.get("rejection") or {}
+        rejection_reason = rejection.get("reason") or ""
+        if rejection_reason and rejection_reason != "gate failed":
+            return rejection_reason
+        if gate_result.get("results") and gate_reason != "gate failed":
+            return gate_reason
+        application = proposal.get("application") or {}
+        if application.get("error"):
+            return application["error"]
+        if application.get("validation_ok") is False:
+            return "validation failed"
+        return rejection_reason
+
+    def proposal_model_parse_reason(self, proposal):
+        output = proposal.get("model_output_raw")
+        if not isinstance(output, str) or not output.strip():
+            return ""
+        return self.parse_model_proposal_text(output).get("reason", "")
+
     def proposal_to_lora_sample(self, proposal, label):
-        system = (
-            "당신은 q1 proposal 생성기다. 실제 파일을 수정하지 말고 오감독 검토용 산출물만 만든다. "
-            "수정이 필요 없으면 DONE_NO_CHANGE, 조사가 필요하면 허용 도구 호출 하나만 출력한다."
-        )
+        system = SELF_PLAY_SYSTEM_PROMPT
+        rejection_reason = self.proposal_rejection_reason(proposal)
+        parse_reason = self.proposal_model_parse_reason(proposal)
         user = "\n".join([
             f"target: {proposal.get('target', '')}",
             f"problem: {proposal.get('problem', '')}",
@@ -3534,6 +3838,9 @@ class Q1Engine:
                 "risk": proposal.get("risk"),
                 "validation": proposal.get("expected_validation", "./q1 --validate"),
                 "changed_files": (proposal.get("application") or {}).get("changed_files", []),
+                "proposal_source": proposal.get("source"),
+                "rejection_reason": rejection_reason,
+                "model_parse_reason": parse_reason,
             },
         }
 
@@ -3560,8 +3867,20 @@ class Q1Engine:
                 f.write(json.dumps(sample, ensure_ascii=False, sort_keys=True) + "\n")
         report_path = os.path.join(DATASET_ROOT, "q1_selfplay_report.md")
         counts = {}
+        source_counts = {}
+        rejection_counts = {}
+        parse_reason_counts = {}
         for sample in unique.values():
             counts[sample["label"]] = counts.get(sample["label"], 0) + 1
+            metadata = sample.get("metadata") or {}
+            source = metadata.get("proposal_source") or "(missing)"
+            source_counts[source] = source_counts.get(source, 0) + 1
+            rejection_reason = metadata.get("rejection_reason") or ""
+            if sample["label"] == "rejected" and rejection_reason:
+                rejection_counts[rejection_reason] = rejection_counts.get(rejection_reason, 0) + 1
+            parse_reason = metadata.get("model_parse_reason") or ""
+            if parse_reason:
+                parse_reason_counts[parse_reason] = parse_reason_counts.get(parse_reason, 0) + 1
         lines = [
             "# q1 LoRA Dataset Report",
             "",
@@ -3575,6 +3894,21 @@ class Q1Engine:
         ]
         for label in sorted(counts):
             lines.append(f"- {label}: {counts[label]}")
+        lines.extend(["", "## Sources"])
+        for source, count in sorted(source_counts.items(), key=lambda item: (-item[1], item[0])):
+            lines.append(f"- {source}: {count}")
+        lines.extend(["", "## Rejection Reasons"])
+        if rejection_counts:
+            for reason, count in sorted(rejection_counts.items(), key=lambda item: (-item[1], item[0]))[:30]:
+                lines.append(f"- {reason}: {count}")
+        else:
+            lines.append("- none")
+        lines.extend(["", "## Model Parse Reasons"])
+        if parse_reason_counts:
+            for reason, count in sorted(parse_reason_counts.items(), key=lambda item: (-item[1], item[0])):
+                lines.append(f"- {reason}: {count}")
+        else:
+            lines.append("- none")
         with open(report_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
         console.print(f"[bold green]lora dataset:[/bold green] {output_path}")
@@ -3605,6 +3939,8 @@ if __name__ == "__main__":
     parser.add_argument("--self-play", action="store_true")
     parser.add_argument("--self-play-model", action="store_true", help="Generate proposals via real q1 model server (Phase 1 self-play)")
     parser.add_argument("--proposal-autopilot", action="store_true")
+    parser.add_argument("--autopilot-mode", choices=["deterministic", "model"], default="deterministic",
+                        help="proposal autopilot mode (default deterministic)")
     parser.add_argument("--proposal-apply-limit", type=int, default=20)
     parser.add_argument("--list-proposals", action="store_true")
     parser.add_argument("--proposal-status", choices=["pending", "accepted", "rejected"], default="pending")
@@ -3713,7 +4049,7 @@ if __name__ == "__main__":
     elif args.self_play_model:
         engine.self_play_model(cycles=args.cycles)
     elif args.proposal_autopilot:
-        engine.proposal_autopilot(args.cycles, apply_limit=args.proposal_apply_limit)
+        engine.proposal_autopilot(args.cycles, apply_limit=args.proposal_apply_limit, mode=args.autopilot_mode)
     elif args.list_proposals:
         engine.list_proposals(args.proposal_status, limit=args.limit)
     elif args.show_proposal:

@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-05 22:33:09",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 22:39:12",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "476e7649e31e",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 82909,
+    "max_tokens": 1024,
+    "prompt_hash": "ff3aba748d22086825d2b0d8e4edf1c2856a51629b8f957d774295c65efd4922",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"parse_tool_calls\", \"content\": \"    def parse_tool_calls(self, text):\\n        calls = []\\n        block_pattern = re.compile(\\n            r'<tool_call\\\\s+([^>]*)>\\\\s*<content>\\\\s*(?:<!\\\\[CDATA\\\\[)?(.*?)(?:\\\\]\\\\]>)?\\\\s*</content>\\\\s*</tool_call>',\\n            re.DOTALL,\\n        )\\n        tag_items = []\\n        masked_text_parts = []\\n        cursor = 0\\n        for match in block_pattern.finditer(text):\\n            tag_items.append((match.group(1), match.group(2)))\\n            masked_text_parts.append(text[cursor:match.start()])\\n            cursor = match.end()\\n        masked_text_parts.append(text[cursor:])\\n        masked_text = \\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u20",
+  "moved_at": "2026-05-05 22:39:12",
+  "nonce": "9bf1072c",
+  "problem": "모델이 생성한 tool_call을 quote 혼합, 긴 content, 잘림 상황에서도 더 안정적으로 파싱하도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"parse_tool_calls\", \"content\": \"    def parse_tool_calls(self, text):\\n        calls = []\\n        block_pattern = re.compile(\\n            r'<tool_call\\\\s+([^>]*)>\\\\s*<content>\\\\s*(?:<!\\\\[CDATA\\\\[)?(.*?)(?:\\\\]\\\\]>)?\\\\s*</content>\\\\s*</tool_call>',\\n            re.DOTALL,\\n        )\\n        tag_items = []\\n        masked_text_parts = []\\n        cursor = 0\\n        for match in block_pattern.finditer(text):\\n            tag_items.append((match.group(1), match.group(2)))\\n            masked_text_parts.append(text[cursor:match.start()])\\n            cursor = match.end()\\n        masked_text_parts.append(text[cursor:])\\n        masked_text = \\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u200b\\u20",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-05 22:39:12"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:parse_tool_calls"
+}

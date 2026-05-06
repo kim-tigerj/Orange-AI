@@ -1,0 +1,124 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 12:52:51",
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "tool_result": "<tool_result name='replace_function' status='success'>교체 완료</tool_result>",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 12:51:45",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 12:52:50",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "fedb5ca0ce2d",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 49922,
+    "max_tokens": 1024,
+    "prompt_hash": "35193a0ccd45bf34977511455bbb7a3e4e16d623338eee0f0c37848220033116",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"seed_from_failures\", \"content\": \"    def seed_from_failures(self, count):\\n        if count < 1:\\n            console.print(\\\"[bold red]--seed-count must be >= 1[/bold red]\\\")\\n            raise SystemExit(1)\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        todo_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"todo\\\")\\n        os.makedirs(todo_dir, exist_ok=True)\\n        existing_targets = set()\\n        for name in self.list_md_files(todo_dir):\\n            with open(os.path.join(todo_dir, name), \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                target = self.extract_target_function(f.read())\\n            if target:\\n                existing_targets.add(target)\\n\\n        report_files = [\\n            os.path.join(report_dir, name)\\n            for name in self.list_md_files(report_dir, exclude={\\\"latest_summary.md\\\"})\\n        ]\\n        report_files.sort(key=os.path.getmtime, reverse=True)\\n\\n        recent_verdicts = self.recent_target_verdicts()\\n        created = 0\\n        skipped = 0\\n        skipped_repaired = 0\\n        for path in report_files:\\n            if created >= count:\\n                break\\n            with open(path, \\\"r\\\", encoding=\\\"utf-8\\\", errors=\\\"replace\\\") as f:\\n                text = f.read()\\n            if self.extract_report_field(text, \\\"verdict\\\") != \\\"CONTINUE\\\":\\n                continue\\n            repair = self.classify_failure_repair(text)\\n            if not repair:\\n                skipped += 1\\n                continue\\n            target, goal = repair\\n            if target in existing_targets:\\n                skipped += 1\\n                continue\\n            recent_verdict = recent_verdicts.get(target)\\n            if recent_verdict in {\\\"DONE\\\", \\\"NO_CHANGE\\\", \\\"FAILED\\\"}:\\n                skipped_repaired += 1\\n                continue\\n            if recent_verdict == \\\"RETRY\\\" and self.extract_report_field(text, \\\"retry_count\\\") >= 3:\\n                skipped_repaired += 1\\n                continue\\n            self.create_function_job(target, goal)\\n            existing_targets.add(target)\\n            created += 1\\n\\n        console.print(\\\"[bold]q1 seed from failures[/bold]\\\")\\n        console.print(f\\\"created: {created}\\\")\\n        console.print(f\\\"skipped: {skipped}\\\")\\n        console.print(f\\\"skipped_repaired: {skipped_repaired}\\\")\\n\"}}",
+  "moved_at": "2026-05-06 12:52:51",
+  "nonce": "21e0ba8d",
+  "problem": "실패 보고서를 복구 작업으로 바꿀 때 이미 고쳐진 대상과 반복 실패를 더 잘 건너뛰도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def seed_from_failures(self, count):\\n        if count < 1:\\n            console.print(\\\"[bold red]--seed-count must be >= 1[/bold red]\\\")\\n            raise SystemExit(1)\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        todo_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"todo\\\")\\n        os.makedirs(todo_dir, exist_ok=True)\\n        existing_targets = set()\\n        for name in self.list_md_files(todo_dir):\\n            with open(os.path.join(todo_dir, name), \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                target = self.extract_target_function(f.read())\\n            if target:\\n                existing_targets.add(target)\\n\\n        report_files = [\\n            os.path.join(report_dir, name)\\n            for name in self.list_md_files(report_dir, exclude={\\\"latest_summary.md\\\"})\\n        ]\\n        report_files.sort(key=os.path.getmtime, reverse=True)\\n\\n        recent_verdicts = self.recent_target_verdicts()\\n        created = 0\\n        skipped = 0\\n        skipped_repaired = 0\\n        for path in report_files:\\n            if created >= count:\\n                break\\n            with open(path, \\\"r\\\", encoding=\\\"utf-8\\\", errors=\\\"replace\\\") as f:\\n                text = f.read()\\n            if self.extract_report_field(text, \\\"verdict\\\") != \\\"CONTINUE\\\":\\n                continue\\n            repair = self.classify_failure_repair(text)\\n            if not repair:\\n                skipped += 1\\n                continue\\n            target, goal = repair\\n            if target in existing_targets:\\n                skipped += 1\\n                continue\\n            recent_verdict = recent_verdicts.get(target)\\n            if recent_verdict in {\\\"DONE\\\", \\\"NO_CHANGE\\\", \\\"FAILED\\\"}:\\n                skipped_repaired += 1\\n                continue\\n            if recent_verdict == \\\"RETRY\\\" and self.extract_report_field(text, \\\"retry_count\\\") >= 3:\\n                skipped_repaired += 1\\n                continue\\n            self.create_function_job(target, goal)\\n            existing_targets.add(target)\\n            created += 1\\n\\n        console.print(\\\"[bold]q1 seed from failures[/bold]\\\")\\n        console.print(f\\\"created: {created}\\\")\\n        console.print(f\\\"skipped: {skipped}\\\")\\n        console.print(f\\\"skipped_repaired: {skipped_repaired}\\\")\\n\", \"func_name\": \"seed_from_failures\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:seed_from_failures",
+  "validation_report": {
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "job": "proposal:fedb5ca0ce2d",
+    "ok": true,
+    "results": [
+      {
+        "command": "./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 proposal autopilot\ncycle 1/1\nq1 proposal autopilot summary\ncycles: 1\napplied_or_accepted: 0\nfailed_or_rejected: 0\nkind_counts: {}\nself_play_model_one: id=skip-test target=llm/q1/q1.py:compact_logs kind=skipped \nsource_chars=6001\n[2026-05-06 12:52:50] JOB 481f0fc8a165 queued request_id=None queue_depth=1\n[2026-05-06 12:52:50] JOB 481f0fc8a165 running\n[2026-05-06 12:52:50] JOB 481f0fc8a165 done elapsed_seconds=0.05\n[2026-05-06 12:52:50] JOB 52d4ea2eb456 cache hit request_id=req1\n[2026-05-06 12:52:50] REQUEST #req1 stream done job_id=52d4ea2eb456 cached=True elapsed_seconds=0.0 counts total=1 generate=1 health=0 jobs=0 errors=0 inference completed=1 cached=1 avg_seconds=0.05 total_seconds=0.05\n[2026-05-06 12:52:50] JOB 33643bd45154 queued request_id=r1 queue_depth=1\n[2026-05-06 12:52:50] JOB 33643bd45154 joined duplicate request_id=r2\n[2026-05-06 12:52:50] JOB 33643bd45154 running\n[2026-05-06 12:52:50] JOB 33643bd45154 done elapsed_seconds=0.04\n[2026-05-06 12:52:50] JOB a5f495791c8b qu\nSTDERR: ..........................................\n----------------------------------------------------------------------\nRan 42 tests in 0.566s\n\nOK\n\nOUTPUT_LENGTH: 1584\nERROR_LENGTH: 141\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --self-check",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: project_root: /Users/tigerj/Work/OrangeLabs/Orange/Orange-AI -> OK\npersona: loaded -> OK\nread_file: llm/q1/q1.py -> OK\nlist_directory: llm/q1/core -> OK\nallowed_tool_guard: disallowed read_function -> OK\n\nSTDERR: \nOUTPUT_LENGTH: 204\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --tool-self-test",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 tool self-test\nparse_tool_calls_roundtrip: OK\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='error'>Replacement function name \nmismatch: expected target, got renamed</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction decorators</tool_result>\nreplace_function_signature_guard: OK\nreplace_function_decorator_guard: OK\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction return flow</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction yield flow</tool_result>\nreplace_function_return_guard: OK\nreplace_function_yield_guard: OK\n<tool_result name='replace_function' status='error'>Post-splice verification \nfailed: function topology changed</tool_result>\nreplace_function_topology_guard: OK\n<tool_result name='execute_b\nSTDERR: \nOUTPUT_LENGTH: 1319\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \"llm/q1/core 목록 확인해라\"",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: 직접 실행 결과:\n<tool_result name='list_directory' status='success'>\n[{\"name\": \"context_manager.py\", \"size\": 0, \"type\": \"file\"}, {\"name\": \n\"analyzer.py\", \"size\": 674, \"type\": \"file\"}, {\"name\": \"session_manager.py\", \n\"size\": 0, \"type\": \"file\"}, {\"name\": \"handlers.py\", \"size\": 23430, \"type\": \n\"file\"}]\n</tool_result>\n\nSTDERR: \nOUTPUT_LENGTH: 310\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/venv/bin/python -c importlib.import_module q1",
+        "ok": true,
+        "result": "<tool_result name='import_check' status='success'>\nMODULE: q1\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \n</tool_result>"
+      }
+    ],
+    "timestamp": "2026-05-06 12:52:51",
+    "tool_errors": [],
+    "tool_results": [
+      "<tool_result name='replace_function' status='success'>교체 완료</tool_result>"
+    ]
+  }
+}

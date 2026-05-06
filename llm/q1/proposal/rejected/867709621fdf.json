@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-05 22:40:25",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 22:40:25",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "protected target function: _resolve_path",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "867709621fdf",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 1,
+    "max_tokens": 1024,
+    "prompt_hash": "d075d482ff74e2b7fe9c338d65ef47b62ae15d5a885711d4bfd2f81b91633210",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"_resolve_path\", \"content\": \"    def _resolve_path(self, path):\\n        if not path:\\n            path = \\\".\\\"\\n        clean_path = path.lstrip('/')\\n        if clean_path.startswith('llm/llm/'):\\n            clean_path = clean_path.replace('llm/llm/', 'llm/', 1)\\n        elif clean_path.startswith('llm/'):\\n            clean_path = clean_path[len('llm/'):]  # Remove redundant 'llm/' prefix\\n        elif not clean_path.startswith(self.project_root):\\n            clean_path = os.path.join(self.project_root, clean_path)\\n\\n        resolved_path = os.path.abspath(clean_path)\\n        normalized_path = os.path.normpath(resolved_path)\\n        project_root = os.path.abspath(self.project_root)\\n\\n        if os.path.commonpath([project_root, normalized_path]) != project_root:\\n            raise ValueError(f\\\"Attempted path traversal outside project root: {path} resolved to {normalized_path}\\\")\\n\\n        return normalized_path\"}}",
+  "moved_at": "2026-05-05 22:40:25",
+  "nonce": "bb5c4de5",
+  "problem": "도구 경로 해석이 프로젝트 루트 경계와 흔한 경로 실수를 더 명확히 처리하도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"_resolve_path\", \"content\": \"    def _resolve_path(self, path):\\n        if not path:\\n            path = \\\".\\\"\\n        clean_path = path.lstrip('/')\\n        if clean_path.startswith('llm/llm/'):\\n            clean_path = clean_path.replace('llm/llm/', 'llm/', 1)\\n        elif clean_path.startswith('llm/'):\\n            clean_path = clean_path[len('llm/'):]  # Remove redundant 'llm/' prefix\\n        elif not clean_path.startswith(self.project_root):\\n            clean_path = os.path.join(self.project_root, clean_path)\\n\\n        resolved_path = os.path.abspath(clean_path)\\n        normalized_path = os.path.normpath(resolved_path)\\n        project_root = os.path.abspath(self.project_root)\\n\\n        if os.path.commonpath([project_root, normalized_path]) != project_root:\\n            raise ValueError(f\\\"Attempted path traversal outside project root: {path} resolved to {normalized_path}\\\")\\n\\n        return normalized_path\"}}",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-05 22:40:25"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:_resolve_path"
+}

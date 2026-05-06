@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 07:09:50",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 07:09:50",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "d87007e1d761",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 84632,
+    "max_tokens": 1024,
+    "prompt_hash": "d6c453d66d2962093f84aa9ec5c829cac3f1777717e142481741e4f5fa17dc57",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"queue_health\", \"content\": \"    def queue_health(self):\\n        job_root = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\")\\n        todo_dir = os.path.join(job_root, \\\"todo\\\")\\n        done_dir = os.path.join(job_root, \\\"done\\\")\\n        failed_dir = os.path.join(job_root, \\\"failed\\\")\\n        report_dir = os.path.join(job_root, \\\"report\\\")\\n        log_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"log\\\")\\n        todo = self.list_md_files(todo_dir)\\n        done = self.list_md_files(done_dir)\\n        failed = self.list_md_files(failed_dir)\\n        reports = self.list_md_files(report_dir, exclude={\\\"latest_summary.md\\\"})\\n        runnable = 0\\n        skipped = 0\\n        for name in todo:\\n            with open(os.path.join(todo_dir, name), \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                if self.extract_target_function(f.read()):\\n                    runnable += 1\\n                else:\\n                    skipped += 1\\n        response_log = os.path.join(log_dir, \\\"RESPONSE_HISTORY.md\\\")\\n        compact_summary = os.path.join(log_dir, \\\"COMPACT_SUMMARY.md\\\")\\n        response_bytes = os.path.getsize(response_log) if os.path.exists(response_log) else 0\\n        compact_present = os.path.exists(compact_summary)\\n        discovered = self.discover_function_targets()\\n        discovered_total = len(discovered)\\n        seed_summary = self.seed_candidate_summary(discovered=discovered, todo_files=todo)\\n        seed_candidates = seed_summary[\\\"candidates\\\"]\\n        next_action = \\\"--cycle-once --limit 1 --max-no-change 1\\\" if runnable else \\\"--seed-default-jobs\\\"\\n        if not runnable and not seed_candidates:\\n            next_action = self.next_manual_job_command()\\n\\n        console.print(\\\"[bold]q1 queue health[/bold]\\\")\\n        console.print(f\\\"todo_count: {len(todo)}\\\")\\n        console.print(f\\\"runnable_todo_count: {runnable}\\\")\\n        console.print(f\\\"skippable_todo_count: {skipped}\\\")\\n        console.print(f\\\"done_count: {len(done)}\\\")\\n        console.print(f\\\"failed_count: {len(failed)}\\\")\\n        console.print(f\\\"report_count: {len(reports)}\\\")\\n        console.print(f\\\"response_history_bytes: {response_bytes}\\\")\\n        console.print(f\\\"compact_summary: {'present' if compact_present else 'missing'}\\\")\\n        console.print(f\\\"discovered_target_count: {discovered_total}\\\")\\n        console.print(f\\\"seed_candidate_count: {len(seed_candidates)}\\\")\\n        console.print(f\\\"seed_rejected_existing_todo: {seed_summary['rejected_existing_todo']}\\\")\\n        console.print(f\\\"seed_rejected_recent_done_or_no_change: {seed_summary['rejected_recent_done_or_no_change']}\\\")\\n        console.print(f\\\"seed_rejected_failed: {seed_summary['rejected_failed']}\\\")\\n        if seed_candidates:\\n            console.print(f\\\"seed_next_candidate: {seed_candidates[0]}\\\")\\n        console.print(f\\\"next_action: {next_action}\\\")\\n        queue_status = 'empty' if not runnable else 'has runnable jobs'\\n        console.print(f\\\"queue_status: {queue_status}\\\")\\n        if queue_status == 'empty':\\n            if not seed_candidates:\\n                console.print(f\\\"bottleneck: seed candidates exhausted\\\")\\n            elif response_bytes > 1000000:\\n                console.print(f\\\"bottleneck: response log size exceeds 1MB\\\")\\n            else:\\n                console.print(f\\\"bottleneck: none detected\\\")\\n        else:\\n            console.print(f\\\"bottleneck: none detected\\\")\\n        if queue_status == 'empty':\\n            if not seed_candidates:\\n                console.print(f\\\"next_step: refill seed candidates\\\")\\n            elif response_bytes > 1000000:\\n                console.print(f\\\"next_step: clear response log\\\")\\n            else:\\n                console.print(f\\\"next_step: wait for new jobs\\\")\\n        else:\\n            console.print(f\\\"next_step: process runnable jobs\\\")\\n        if queue_status == 'empty':\\n            if not seed_candidates:\\n                console.print(f\\\"suggestion: consider adding more seed jobs to the queue\\\")\\n            elif response_bytes > 1000000:\\n",
+  "moved_at": "2026-05-06 07:09:50",
+  "nonce": "9b94bd6b",
+  "problem": "큐가 비었을 때 다음 행동과 병목을 더 명확히 보여주도록 운영 상태 출력을 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"queue_health\", \"content\": \"    def queue_health(self):\\n        job_root = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\")\\n        todo_dir = os.path.join(job_root, \\\"todo\\\")\\n        done_dir = os.path.join(job_root, \\\"done\\\")\\n        failed_dir = os.path.join(job_root, \\\"failed\\\")\\n        report_dir = os.path.join(job_root, \\\"report\\\")\\n        log_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"log\\\")\\n        todo = self.list_md_files(todo_dir)\\n        done = self.list_md_files(done_dir)\\n        failed = self.list_md_files(failed_dir)\\n        reports = self.list_md_files(report_dir, exclude={\\\"latest_summary.md\\\"})\\n        runnable = 0\\n        skipped = 0\\n        for name in todo:\\n            with open(os.path.join(todo_dir, name), \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                if self.extract_target_function(f.read()):\\n                    runnable += 1\\n                else:\\n                    skipped += 1\\n        response_log = os.path.join(log_dir, \\\"RESPONSE_HISTORY.md\\\")\\n        compact_summary = os.path.join(log_dir, \\\"COMPACT_SUMMARY.md\\\")\\n        response_bytes = os.path.getsize(response_log) if os.path.exists(response_log) else 0\\n        compact_present = os.path.exists(compact_summary)\\n        discovered = self.discover_function_targets()\\n        discovered_total = len(discovered)\\n        seed_summary = self.seed_candidate_summary(discovered=discovered, todo_files=todo)\\n        seed_candidates = seed_summary[\\\"candidates\\\"]\\n        next_action = \\\"--cycle-once --limit 1 --max-no-change 1\\\" if runnable else \\\"--seed-default-jobs\\\"\\n        if not runnable and not seed_candidates:\\n            next_action = self.next_manual_job_command()\\n\\n        console.print(\\\"[bold]q1 queue health[/bold]\\\")\\n        console.print(f\\\"todo_count: {len(todo)}\\\")\\n        console.print(f\\\"runnable_todo_count: {runnable}\\\")\\n        console.print(f\\\"skippable_todo_count: {skipped}\\\")\\n        console.print(f\\\"done_count: {len(done)}\\\")\\n        console.print(f\\\"failed_count: {len(failed)}\\\")\\n        console.print(f\\\"report_count: {len(reports)}\\\")\\n        console.print(f\\\"response_history_bytes: {response_bytes}\\\")\\n        console.print(f\\\"compact_summary: {'present' if compact_present else 'missing'}\\\")\\n        console.print(f\\\"discovered_target_count: {discovered_total}\\\")\\n        console.print(f\\\"seed_candidate_count: {len(seed_candidates)}\\\")\\n        console.print(f\\\"seed_rejected_existing_todo: {seed_summary['rejected_existing_todo']}\\\")\\n        console.print(f\\\"seed_rejected_recent_done_or_no_change: {seed_summary['rejected_recent_done_or_no_change']}\\\")\\n        console.print(f\\\"seed_rejected_failed: {seed_summary['rejected_failed']}\\\")\\n        if seed_candidates:\\n            console.print(f\\\"seed_next_candidate: {seed_candidates[0]}\\\")\\n        console.print(f\\\"next_action: {next_action}\\\")\\n        queue_status = 'empty' if not runnable else 'has runnable jobs'\\n        console.print(f\\\"queue_status: {queue_status}\\\")\\n        if queue_status == 'empty':\\n            if not seed_candidates:\\n                console.print(f\\\"bottleneck: seed candidates exhausted\\\")\\n            elif response_bytes > 1000000:\\n                console.print(f\\\"bottleneck: response log size exceeds 1MB\\\")\\n            else:\\n                console.print(f\\\"bottleneck: none detected\\\")\\n        else:\\n            console.print(f\\\"bottleneck: none detected\\\")\\n        if queue_status == 'empty':\\n            if not seed_candidates:\\n                console.print(f\\\"next_step: refill seed candidates\\\")\\n            elif response_bytes > 1000000:\\n                console.print(f\\\"next_step: clear response log\\\")\\n            else:\\n                console.print(f\\\"next_step: wait for new jobs\\\")\\n        else:\\n            console.print(f\\\"next_step: process runnable jobs\\\")\\n        if queue_status == 'empty':\\n            if not seed_candidates:\\n                console.print(f\\\"suggestion: consider adding more seed jobs to the queue\\\")\\n            elif response_bytes > 1000000:\\n",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 07:09:50"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:queue_health"
+}

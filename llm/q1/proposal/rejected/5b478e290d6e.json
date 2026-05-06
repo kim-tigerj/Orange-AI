@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-05 23:13:47",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-05 23:15:36",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "5b478e290d6e",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 78162,
+    "max_tokens": 1024,
+    "prompt_hash": "283eaa2fe8079dd439b6a670f3b4a3043d9ef7b5412cd160504bd6b1fb7560b9",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines).replace('\\\\n', ' ')\\n        # 간결한 목표 추출을 위해 문장 단위로 요약\\n        summary = self.summarize_text(cleaned_text)\\n        return summary.strip() if summary.strip() else None\\n\\n    def summarize_text(self, text):\\n        # 간단한 요약 로직 예시 (실제 사용 시 더 복잡한 모델 사용 권장)\\n        import nltk\\n        from nltk.tokenize import sent_tokenize\\n        nltk.download('punkt')\\n        sentences = sent_tokenize(text)\\n        if len(sentences) > 1:\\n            return ' '.join(sentences[:2])  # 첫 두 문장만 사용\\n        return text\"}}\n<|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines).replace('\\\\n', ' ')\\n        # 간결한 목표 추출을 위해 문장 단위로 요약\\n        summary = self.summarize_text(cleaned_text)\\n        return summary.strip() if summary.strip() else None\\n\\n    def summarize_text(self, text):\\n        # 간단한 요약 로직 예시 (실제 사용 시 더 복잡한 모델 사용 권장)\\n        import nltk\\n        from nltk.tokenize import sent_tokenize\\n        nltk.download('punkt')\\n        sentences = sent_tokenize(text)\\n        if len(sentences) > 1:\\n            return ' '.join(sentences[:2])  # 첫 두 문장만 사용\\n        return text\"}}\n<|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines).replace('\\\\n', ' ')\\n        # 간결한 목표 추출을 위해 문장 단위로 요약\\n        summary = self.summarize_text(cleaned_text)\\n        return summary.strip() if summary.strip() else None\\n\\n    def summarize_text(self, text):\\n        # 간단한 요약 로직 예시 (실제 사용 시 더 복잡한 모델 사용 권장)\\n        import nltk\\n        from nltk.tokenize import sent_tokenize\\n        nltk.download('punkt')\\n        sentences = sent_tokenize(text)\\n        if len(sentences) > 1:\\n            return ' '.join(sentences[:2])  # 첫 두 문장만 사용\\n        return text\"}}\n<|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines",
+  "moved_at": "2026-05-05 23:15:36",
+  "nonce": "41bf25d3",
+  "problem": "job 문서의 목표를 간결하게 추출해 함수 개선 프롬프트 품질을 높이도록 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines).replace('\\\\n', ' ')\\n        # 간결한 목표 추출을 위해 문장 단위로 요약\\n        summary = self.summarize_text(cleaned_text)\\n        return summary.strip() if summary.strip() else None\\n\\n    def summarize_text(self, text):\\n        # 간단한 요약 로직 예시 (실제 사용 시 더 복잡한 모델 사용 권장)\\n        import nltk\\n        from nltk.tokenize import sent_tokenize\\n        nltk.download('punkt')\\n        sentences = sent_tokenize(text)\\n        if len(sentences) > 1:\\n            return ' '.join(sentences[:2])  # 첫 두 문장만 사용\\n        return text\"}}\n<|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines).replace('\\\\n', ' ')\\n        # 간결한 목표 추출을 위해 문장 단위로 요약\\n        summary = self.summarize_text(cleaned_text)\\n        return summary.strip() if summary.strip() else None\\n\\n    def summarize_text(self, text):\\n        # 간단한 요약 로직 예시 (실제 사용 시 더 복잡한 모델 사용 권장)\\n        import nltk\\n        from nltk.tokenize import sent_tokenize\\n        nltk.download('punkt')\\n        sentences = sent_tokenize(text)\\n        if len(sentences) > 1:\\n            return ' '.join(sentences[:2])  # 첫 두 문장만 사용\\n        return text\"}}\n<|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines).replace('\\\\n', ' ')\\n        # 간결한 목표 추출을 위해 문장 단위로 요약\\n        summary = self.summarize_text(cleaned_text)\\n        return summary.strip() if summary.strip() else None\\n\\n    def summarize_text(self, text):\\n        # 간단한 요약 로직 예시 (실제 사용 시 더 복잡한 모델 사용 권장)\\n        import nltk\\n        from nltk.tokenize import sent_tokenize\\n        nltk.download('punkt')\\n        sentences = sent_tokenize(text)\\n        if len(sentences) > 1:\\n            return ' '.join(sentences[:2])  # 첫 두 문장만 사용\\n        return text\"}}\n<|im_start|>\n<|im_start|>\n{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"extract_job_goal\", \"content\": \"    def extract_job_goal(self, job_text):\\n        match = re.search(r\\\"^## Goal\\\\s+(.+?)(?:\\\\n## |\\\\Z)\\\", job_text, re.MULTILINE | re.DOTALL)\\n        if not match:\\n            return None\\n        goal_lines = match.group(1).splitlines()\\n        cleaned_lines = [line.strip() for line in goal_lines if line.strip()]\\n        cleaned_text = ' '.join(cleaned_lines",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-05 23:15:36"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:extract_job_goal"
+}

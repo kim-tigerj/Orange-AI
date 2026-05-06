@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 07:27:44",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 07:28:44",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "missing or malformed tool_call",
+        "name": "tool_parse",
+        "ok": false
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "9975dd55b8fa",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 86228,
+    "max_tokens": 1024,
+    "prompt_hash": "24a606c00f4b680e2a3fc0678b2d25e7a50cd0c3fd97c9d2f7c06c5284e9f711",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"write_latest_summary\", \"content\": \"    def write_latest_summary(self, limit=5):\\n        job_root = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\")\\n        todo_dir = os.path.join(job_root, \\\"todo\\\")\\n        done_dir = os.path.join(job_root, \\\"done\\\")\\n        failed_dir = os.path.join(job_root, \\\"failed\\\")\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        os.makedirs(report_dir, exist_ok=True)\\n        todo = self.list_md_files(todo_dir)\\n        done = self.list_md_files(done_dir)\\n        failed = self.list_md_files(failed_dir)\\n        report_files = [\\n            os.path.join(report_dir, name)\\n            for name in self.list_md_files(report_dir, exclude={\\\"latest_summary.md\\\"})\\n        ]\\n        report_files.sort(key=os.path.getmtime, reverse=True)\\n\\n        entries = []\\n        for path in report_files[:max(limit * 3, 15)]:\\n            try:\\n                with open(path, \\\"r\\\", encoding=\\\"utf-8\\\", errors=\\\"replace\\\") as f:\\n                    text = f.read()\\n            except OSError as exc:\\n                console.print(f\\\"[yellow]summary report skipped:[/yellow] {os.path.basename(path)}: {exc}\\\")\\n                continue\\n            verdict = self.extract_report_field(text, \\\"verdict\\\")\\n            changed_files = self.extract_report_field(text, \\\"changed_files\\\")\\n            is_failure_test = (\\n                verdict == \\\"CONTINUE\\\"\\n                and changed_files == \\\"(none)\\\"\\n                and \\\"q1 server unavailable\\\" in text\\n                and \\\"127.0.0.1:65534\\\" in text\\n            )\\n            entries.append({\\n                \\\"file\\\": os.path.basename(path),\\n                \\\"job\\\": self.extract_report_field(text, \\\"job\\\"),\\n                \\\"timestamp\\\": self.extract_report_field(text, \\\"timestamp\\\"),\\n                \\\"verdict\\\": verdict,\\n                \\\"changed_files\\\": changed_files,\\n                \\\"category\\\": \\\"failure_test\\\" if is_failure_test else \\\"development\\\",\\n                \\\"model_call_skipped\\\": self.extract_report_field(text, \\\"model_call_skipped\\\"),\\n                \\\"model_elapsed_ms\\\": self.extract_report_field(text, \\\"model_elapsed_ms\\\"),\\n            })\\n\\n        operational_entries = [item for item in entries if item[\\\"category\\\"] != \\\"failure_test\\\"]\\n        recent_reports = operational_entries[:limit]\\n        ignored_failure_tests = len(entries) - len(operational_entries)\\n        latest_verdict = operational_entries[0][\\\"verdict\\\"] if operational_entries else \\\"(none)\\\"\\n        latest_category = operational_entries[0][\\\"category\\\"] if operational_entries else \\\"(none)\\\"\\n        repeated_no_change = sum(1 for item in operational_entries[:2] if item[\\\"verdict\\\"] == \\\"NO_CHANGE\\\")\\n        seed_summary = self.seed_candidate_summary(todo_files=todo)\\n        seed_candidates = seed_summary[\\\"candidates\\\"]\\n        next_job = \\\"--improve-function llm/q1/q1.py:write_latest_summary\\\"\\n        if todo:\\n            next_job = \\\"--auto-improve --limit 1\\\"\\n        elif latest_verdict == \\\"CONTINUE\\\":\\n            next_job = \\\"--failure-latest\\\"\\n        elif not seed_candidates:\\n            next_job = self.next_manual_job_command()\\n        elif repeated_no_change >= 2:\\n            next_job = \\\"--seed-discovered-jobs --seed-count 3\\\"\\n        elif latest_verdict == \\\"NO_CHANGE\\\":\\n            next_job = \\\"--seed-default-jobs --seed-count 3\\\"\\n\\n        summary = {\\n            \\\"generated_at\\\": datetime.now().strftime(\\\"%Y-%m-%d %H:%M:%S\\\"),\\n            \\\"todo_count\\\": len(todo),\\n            \\\"done_count\\\": len(done),\\n            \\\"failed_count\\\": len(failed),\\n            \\\"report_count\\\": len(report_files),\\n            \\\"next_todo\\\": todo[0] if todo else \\\"(none)\\\",\\n            \\\"latest_verdict\\\": latest_verdict,\\n            \\\"latest_report_category\\\": latest_category,\\n            \\\"ignored_failure_test_reports\\\": ignored_failure_tests,\\n            \\\"seed_candidate_count\\\": len(seed_candidates),\\n            \\\"seed_rejected_existing_todo\\\": seed_summary[\\\"rejected_existing_todo\\\"],\\n            \\\"seed_rejected_recent_done_or_no_change\\\":",
+  "moved_at": "2026-05-06 07:28:44",
+  "nonce": "2d357bb7",
+  "problem": "다음 세션이 전체 로그를 읽지 않아도 되도록 latest_summary의 운영 요약 품질을 개선한다.",
+  "proposed_tool_call": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"write_latest_summary\", \"content\": \"    def write_latest_summary(self, limit=5):\\n        job_root = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\")\\n        todo_dir = os.path.join(job_root, \\\"todo\\\")\\n        done_dir = os.path.join(job_root, \\\"done\\\")\\n        failed_dir = os.path.join(job_root, \\\"failed\\\")\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        os.makedirs(report_dir, exist_ok=True)\\n        todo = self.list_md_files(todo_dir)\\n        done = self.list_md_files(done_dir)\\n        failed = self.list_md_files(failed_dir)\\n        report_files = [\\n            os.path.join(report_dir, name)\\n            for name in self.list_md_files(report_dir, exclude={\\\"latest_summary.md\\\"})\\n        ]\\n        report_files.sort(key=os.path.getmtime, reverse=True)\\n\\n        entries = []\\n        for path in report_files[:max(limit * 3, 15)]:\\n            try:\\n                with open(path, \\\"r\\\", encoding=\\\"utf-8\\\", errors=\\\"replace\\\") as f:\\n                    text = f.read()\\n            except OSError as exc:\\n                console.print(f\\\"[yellow]summary report skipped:[/yellow] {os.path.basename(path)}: {exc}\\\")\\n                continue\\n            verdict = self.extract_report_field(text, \\\"verdict\\\")\\n            changed_files = self.extract_report_field(text, \\\"changed_files\\\")\\n            is_failure_test = (\\n                verdict == \\\"CONTINUE\\\"\\n                and changed_files == \\\"(none)\\\"\\n                and \\\"q1 server unavailable\\\" in text\\n                and \\\"127.0.0.1:65534\\\" in text\\n            )\\n            entries.append({\\n                \\\"file\\\": os.path.basename(path),\\n                \\\"job\\\": self.extract_report_field(text, \\\"job\\\"),\\n                \\\"timestamp\\\": self.extract_report_field(text, \\\"timestamp\\\"),\\n                \\\"verdict\\\": verdict,\\n                \\\"changed_files\\\": changed_files,\\n                \\\"category\\\": \\\"failure_test\\\" if is_failure_test else \\\"development\\\",\\n                \\\"model_call_skipped\\\": self.extract_report_field(text, \\\"model_call_skipped\\\"),\\n                \\\"model_elapsed_ms\\\": self.extract_report_field(text, \\\"model_elapsed_ms\\\"),\\n            })\\n\\n        operational_entries = [item for item in entries if item[\\\"category\\\"] != \\\"failure_test\\\"]\\n        recent_reports = operational_entries[:limit]\\n        ignored_failure_tests = len(entries) - len(operational_entries)\\n        latest_verdict = operational_entries[0][\\\"verdict\\\"] if operational_entries else \\\"(none)\\\"\\n        latest_category = operational_entries[0][\\\"category\\\"] if operational_entries else \\\"(none)\\\"\\n        repeated_no_change = sum(1 for item in operational_entries[:2] if item[\\\"verdict\\\"] == \\\"NO_CHANGE\\\")\\n        seed_summary = self.seed_candidate_summary(todo_files=todo)\\n        seed_candidates = seed_summary[\\\"candidates\\\"]\\n        next_job = \\\"--improve-function llm/q1/q1.py:write_latest_summary\\\"\\n        if todo:\\n            next_job = \\\"--auto-improve --limit 1\\\"\\n        elif latest_verdict == \\\"CONTINUE\\\":\\n            next_job = \\\"--failure-latest\\\"\\n        elif not seed_candidates:\\n            next_job = self.next_manual_job_command()\\n        elif repeated_no_change >= 2:\\n            next_job = \\\"--seed-discovered-jobs --seed-count 3\\\"\\n        elif latest_verdict == \\\"NO_CHANGE\\\":\\n            next_job = \\\"--seed-default-jobs --seed-count 3\\\"\\n\\n        summary = {\\n            \\\"generated_at\\\": datetime.now().strftime(\\\"%Y-%m-%d %H:%M:%S\\\"),\\n            \\\"todo_count\\\": len(todo),\\n            \\\"done_count\\\": len(done),\\n            \\\"failed_count\\\": len(failed),\\n            \\\"report_count\\\": len(report_files),\\n            \\\"next_todo\\\": todo[0] if todo else \\\"(none)\\\",\\n            \\\"latest_verdict\\\": latest_verdict,\\n            \\\"latest_report_category\\\": latest_category,\\n            \\\"ignored_failure_test_reports\\\": ignored_failure_tests,\\n            \\\"seed_candidate_count\\\": len(seed_candidates),\\n            \\\"seed_rejected_existing_todo\\\": seed_summary[\\\"rejected_existing_todo\\\"],\\n            \\\"seed_rejected_recent_done_or_no_change\\\":",
+  "rationale": "model self-play proposal parsed as malformed (no_tool_call)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 07:28:44"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:write_latest_summary"
+}

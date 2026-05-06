@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 12:18:01",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 12:18:31",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "protected target function: replace",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "48cb026f4b8a",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 32460,
+    "max_tokens": 1024,
+    "prompt_hash": "30ad5bd79c3077bc344071260dec89c5cab166eabe74937cedc3f282fe36e1a2",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"replace\", \"content\": \"    def replace(self, call):\\n        full_path = self._resolve_path(call.get('path'))\\n        self._ensure_write_allowed(full_path)\\n        with open(full_path, 'r', encoding='utf-8') as f: lines = f.readlines()\\n        old, new = call.get('old_string'), call.get('new_string')\\n        if old is None or new is None:\\n            raise Exception(\\\"old_string and new_string are required\\\")\\n        self._reject_unsafe_generated_content(call.get('path'), new)\\n        hits = [i for i, line in enumerate(lines) if old in line]\\n        if len(hits) == 1:\\n            lines[hits[0]] = lines[hits[0]].replace(old, new)\\n            updated = \\\"\\\".join(lines)\\n            if full_path.endswith(\\\".py\\\"):\\n                valid, err = self._validate_python_with_context(updated)\\n                if not valid: raise Exception(err)\\n            with open(full_path, 'w', encoding='utf-8') as f: f.write(updated)\\n            return \\\"<tool_result name='replace' status='success'>수정 완료</tool_result>\\\"\\n        raise Exception(f\\\"Unique match failed (count: {len(hits)}). Expected 1 match but found {len(hits)} matches. Matches found in lines: {', '.join(map(str, hits))}. The old string '{old}' was found in the following lines: {', '.join(map(lambda x: f'Line {x+1}: {lines[x].strip()}', hits))}\\\")\"}}",
+  "moved_at": "2026-05-06 12:18:31",
+  "nonce": "ddd34509",
+  "problem": "문자열 치환 도구가 match 실패 원인을 더 명확히 보고하도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def replace(self, call):\\n        full_path = self._resolve_path(call.get('path'))\\n        self._ensure_write_allowed(full_path)\\n        with open(full_path, 'r', encoding='utf-8') as f: lines = f.readlines()\\n        old, new = call.get('old_string'), call.get('new_string')\\n        if old is None or new is None:\\n            raise Exception(\\\"old_string and new_string are required\\\")\\n        self._reject_unsafe_generated_content(call.get('path'), new)\\n        hits = [i for i, line in enumerate(lines) if old in line]\\n        if len(hits) == 1:\\n            lines[hits[0]] = lines[hits[0]].replace(old, new)\\n            updated = \\\"\\\".join(lines)\\n            if full_path.endswith(\\\".py\\\"):\\n                valid, err = self._validate_python_with_context(updated)\\n                if not valid: raise Exception(err)\\n            with open(full_path, 'w', encoding='utf-8') as f: f.write(updated)\\n            return \\\"<tool_result name='replace' status='success'>수정 완료</tool_result>\\\"\\n        raise Exception(f\\\"Unique match failed (count: {len(hits)}). Expected 1 match but found {len(hits)} matches. Matches found in lines: {', '.join(map(str, hits))}. The old string '{old}' was found in the following lines: {', '.join(map(lambda x: f'Line {x+1}: {lines[x].strip()}', hits))}\\\")\", \"func_name\": \"replace\", \"path\": \"llm/q1/core/handlers.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 12:18:31"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:replace"
+}

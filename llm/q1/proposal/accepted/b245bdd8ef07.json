@@ -1,0 +1,78 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 12:37:20",
+    "changed_files": [],
+    "note": "DONE_NO_CHANGE proposal accepted without file writes",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 12:37:20",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 12:37:20",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "b245bdd8ef07",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 3714,
+    "max_tokens": 1024,
+    "prompt_hash": "d8846bc36cf896ede9f5ce701ceaa12baa43379ddb76e687620e4cd9d7499c03",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "DONE_NO_CHANGE",
+  "moved_at": "2026-05-06 12:37:20",
+  "nonce": "ca2e08d0",
+  "problem": "도구 경로 해석이 프로젝트 루트 경계와 흔한 경로 실수를 더 명확히 처리하도록 개선한다.",
+  "proposed_tool_call": "DONE_NO_CHANGE",
+  "rationale": "model self-play proposal parsed as no_change (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/core/handlers.py:_resolve_path"
+}

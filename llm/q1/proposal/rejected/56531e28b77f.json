@@ -1,0 +1,76 @@
+{
+  "created_at": "2026-05-06 05:58:07",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 05:58:53",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "protected target function: _ensure_write_allowed",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "56531e28b77f",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 12976,
+    "max_tokens": 1024,
+    "prompt_hash": "4f16ba9ae87e098b71de2995905186f143306d9fa7cd89127bb0a4da34830bcb",
+    "server_url": "http://127.0.0.1:8765"
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"_ensure_write_allowed\", \"content\": \"    def _ensure_write_allowed(self, full_path):\\n        if self.allowed_write_paths is None:\\n            return\\n        normalized = os.path.normpath(os.path.abspath(full_path))\\n        for allowed in self.allowed_write_paths:\\n            if normalized == allowed or normalized.startswith(allowed + os.sep):\\n                return\\n        raise PermissionError(f\\\"Write operation is not allowed for the path: {normalized}. Allowed paths are: {', '.join(self.allowed_write_paths)}\\\")\\n\"}}",
+  "moved_at": "2026-05-06 05:58:53",
+  "nonce": "fe4c7f2e",
+  "problem": "쓰기 허용 경계 오류가 더 명확한 메시지로 보고되도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def _ensure_write_allowed(self, full_path):\\n        if self.allowed_write_paths is None:\\n            return\\n        normalized = os.path.normpath(os.path.abspath(full_path))\\n        for allowed in self.allowed_write_paths:\\n            if normalized == allowed or normalized.startswith(allowed + os.sep):\\n                return\\n        raise PermissionError(f\\\"Write operation is not allowed for the path: {normalized}. Allowed paths are: {', '.join(self.allowed_write_paths)}\\\")\\n\", \"func_name\": \"_ensure_write_allowed\", \"path\": \"llm/q1/core/handlers.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "gate failed",
+    "rejected_at": "2026-05-06 05:58:53"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:_ensure_write_allowed"
+}
