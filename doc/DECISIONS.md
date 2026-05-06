@@ -37,3 +37,92 @@
 ### Step 3: ?먯쑉 ?쇰뱶諛?猷⑦봽 (Self-Correction)
 - Worker???묒뾽 以?鍮뚮뱶 ?먮윭 諛쒖깮 ?? ?먮윭 ?꾨Ц??DB??湲곕줉?섍퀬 ?ㅼ뒪濡?`Diagnostic Turn`???섑뻾?섏뿬 ?섏닠??蹂댁셿?⑸땲??
 - 理쒖쥌 ?깃났 ?쒖뿉留??뺥??μ뿉寃??꾨즺 ?좏샇瑜?蹂대깄?덈떎.
+
+## Decision 2026-05-05: Oh-Council Direction Check For Jeong Team Lead
+
+Claude Code, Gemini, and Codex were asked in read-only Council Phase to verify
+the development direction for OrangeCode / 정팀장.
+
+Verdict: continue the current direction. 정팀장은 a Windows native coding
+workbench, not a general chat app. Chat remains the input surface, while diffs,
+logs, task state, build output, capture evidence, attachments, worker reports,
+and persistent handoff become first-class product objects.
+
+Council consensus for the next phase:
+
+1. Stabilize the persistent work-state model: goals, projects, chats, tasks,
+   worker reports, build results, capture artifacts, and attachments.
+2. Complete a mock-first manager loop: request, context summary, task split,
+   bounded worker instruction, result collection, build/test/capture, final
+   report, and durable handoff.
+3. Keep evidence visible in the UI instead of burying code, diffs, logs, and
+   captures inside plain chat text.
+4. Finish attachment correctness: original files/images must be preserved
+   separately from display thumbnails.
+5. Isolate backend failures and enforce cost control: Claude, Gemini, and Codex
+   adapters must not let one CLI failure break the common execution loop.
+
+Execution assignment:
+
+- Default execution owner: Claude Code for Windows app/body implementation.
+- Codex review focus: schema, backend abstraction, build/test evidence,
+  regression risk, and documentation.
+- Gemini review focus: product direction, UX flow, evidence presentation, and
+  broad integration risks. Gemini backend stability remains a separate bounded
+  task.
+
+Reopen Oh-Council if any of these occur:
+
+- `chief` or another role name reappears for 정팀장 instead of `manager`.
+- The mock manager loop cannot complete end to end.
+- SQLite recovery cannot restore trustworthy work state after restart.
+- Build/capture evidence can be skipped while still reporting completion.
+- Gemini, Claude, or Codex backend errors leak into the shared manager loop.
+- Real LLM calls grow without an explicit budget reason.
+- The product drifts back into a general chat UI where task state and evidence
+  are secondary.
+
+## Decision 2026-05-05: Left Sidebar Direction
+
+Claude Code, Gemini, and Codex were asked in read-only Council Phase to verify
+the in-progress left sidebar work.
+
+Verdict: continue the current `CSidebar` direction. The sidebar should benchmark
+Claude app navigation shape, but its product meaning is different: root
+`정팀장` is the global coordination area, with global chats under it. Goal and
+project groups appear only when real goal/project data exists.
+
+The next implementation step is not more visual polish. The next step is to
+bind `CSidebar` to real SQLite/goals/projects/chats data and prove behavior
+parity with the old LISTBOX path before removing the old path.
+
+Now the sidebar should show:
+
+- root `정팀장`
+- real global chats from SQLite
+- `새 대화` as a draft action, not a persisted empty session
+- current chat accent
+- last active time
+- real Goal/Project groups only when their data exists
+
+Later, after the work model is stable, add:
+
+- goal/project progress
+- build/capture/evidence status
+- worker report and supervisor review status
+- failure/recovery indicators
+- attachment summaries
+
+Review focus:
+
+- no mock marketing tree or fake Goal/Project/Task rows
+- global chats and goal chats are separated correctly
+- empty draft chats do not accumulate in SQLite
+- double-click session switching remains stable
+- right-click context menu targets the correct row
+- Korean text, scroll hit-testing, tooltip text, and DPI behavior are verified
+- Release build and capture pass before the old LISTBOX/GDI path is deleted
+
+Reopen Oh-Council if the sidebar UI diverges from SQLite state, mock rows appear,
+session switching becomes unstable, draft sessions persist incorrectly, or
+visual polish starts before real navigation behavior is proven.

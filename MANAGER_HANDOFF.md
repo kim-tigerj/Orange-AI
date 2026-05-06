@@ -1,154 +1,103 @@
 # Manager Handoff
 
-Current date: 2026-05-05
+Current date: 2026-05-06
 
-## State
+This file is supplemental recovery context for OrangeCode. The SQLite `prompt`,
+`job`, and `job_detail` tables are the highest-priority runtime source. Do not
+auto-execute old markdown action lists unless the latest user request or DB job
+explicitly asks for them.
 
-- OrangeCode is the body of Jeong Team Lead.
-- The required role name is `manager`.
-- Only `manager` should appear as Jeong Team Lead's role in docs, prompts, code, and issue text.
-- Cost control is mandatory, but the priority remains becoming a practical Claude Code replacement.
-- Oh-Council, also called **오감독 3자 협업체계** or **Oh Supervisor 3-Way Collaboration System**, is the official collaboration protocol for Claude Code + Gemini + Codex. Read `OH_COUNCIL.md` before planning or verifying multi-model work.
-- CLI work also follows Oh-Council from now on: use the protocol for important direction, architecture, UX, backend integration, or review decisions; keep routine edits local to avoid unnecessary Claude/Gemini/Codex quota use.
+## Current Truth
 
-## CLI Oh-Council Operating Rule
+- Product direction: OrangeCode is a Windows native coding workbench for
+  `manager` work, not a general chat app.
+- Required role name for Jeong Team Lead is `manager`.
+- Oh-Council is the Claude Code + Gemini + Codex supervisory protocol. It is
+  used for important direction, architecture, backend integration, UX, recovery,
+  or review decisions. Small obvious fixes may be handled as `Local-Fix`.
+- One provider is the appointed execution owner. Other providers are reviewers
+  or advisors unless explicitly delegated a bounded task.
+- The appointed manager provider comes only from OrangeCode app settings and
+  `ORANGE_CODE_MANAGER_PROVIDER`. Markdown files, role docs, and older chat
+  history naming another provider are stale supplemental context.
 
-- Do not spend three real LLM calls just to acknowledge the protocol.
-- For small implementation fixes, 오감독 may execute locally and record the result.
-- For important planning/review work, run Council Phase with Claude Code, Gemini, and Codex using the prompt shape in `OH_COUNCIL.md`.
-- Council Phase is read-only: no participant edits files during discussion.
-- Execution has one owner and explicit file scope.
-- Tri-Review uses all three only when the result affects product direction, backend contracts, persistence, user-visible workflows, or crash risk.
-- Gemini model selection is delegated to Gemini CLI unless the user explicitly configures `gemini.model`.
+## Current Implemented Capabilities
 
-## Completed In This Loop
+- SQLite prompt/job foundation:
+  - `prompt`, `job`, and `job_detail` tables exist.
+  - Generated backend prompts start with active DB prompt rows.
+  - User prompts are recorded as DB jobs, with owner-style instructions given
+    higher priority.
+- Provider authority guard:
+  - Backend prompts include the responding provider and appointed manager
+    provider.
+  - Non-appointed providers are told that `ORANGE_CODE_ROLE=manager` is the app
+    actor role, not file-edit/build authority.
+- Provider relay command parser:
+  - Relay requires explicit syntax at line start: `/relay`, `/ask`, Korean relay
+    command variants, or `@provider`.
+  - Plain mentions of Claude/Gemini/Codex must not trigger provider relay.
+  - Relay has a timeout fallback so work continues if a target provider is
+    silent.
+- Decision-to-action rules:
+  - When provider opinions repeat or enough opinions have arrived, the appointed
+    `manager` must decide and take the next concrete action.
+  - Progress reports should state actual change, actual verification, blocker,
+    or requested OrangeCode tool action. Avoid repeated generic future-action
+    narration.
+- Self-build/relaunch:
+  - `orange.build` can move locked Release outputs aside with unique `.old`
+    names.
+  - Manager-requested successful builds can relaunch immediately instead of
+    waiting for unrelated pending reviewers.
+- Shared chat memory:
+  - Chat API supports list/show/attachments/import through file-output JSON.
+  - Backends are told to inspect shared SQLite chat history when needed instead
+    of assuming unavailable context.
+- Workbench body:
+  - Direct2D sidebar is bound to real SQLite chat/goal/project data.
+  - Large chat sessions load recent blocks first and can prepend older blocks on
+    near-top scroll.
+  - Attachments, image thumbnails, `/capture`, `/settings`, and `/gemini.model`
+    are implemented.
+  - Rate-limit retry countdown and ESC cancellation are implemented.
 
-- Added shared `ManagerEnvironment` module.
-- Backend child calls now receive:
-  - `ORANGE_CODE_ROOT`
-  - `ORANGE_CODE_ROLE=manager`
-  - `ORANGE_CODE_PID`
-  - `ORANGE_CODE_SESSION_KEY`
-- Added `--diagnose-manager-env <path>` for zero-cost environment verification.
-- Added shared manager prompt wrapping for Claude and Gemini calls.
-- Confirmed Gemini model selection is delegated to Gemini CLI when `gemini.model` is empty.
-- Repaired core docs to remove stale role naming.
-- Fixed code-block cards so code backgrounds stay inside the assistant card.
-- Added a local work card between the user request and backend response.
-- Added a distinct `Mock` response source so offline tests do not look like Gemini calls.
-- Added a verification card after backend completion.
-- Increased spacing after labeled assistant cards so verification cards do not overlap.
-- Added `ScrollLatestIntoView()` and call it after backend completion so the latest verification card is visible.
-- Improved table rendering by removing visible pipe separators and expanding cell background padding.
-- Upgraded table drawing to row/column grid backgrounds using `TableInfo`.
-- Verification cards now show the current executable build timestamp and capture target.
-- Fixed markdown link hit-testing by computing the same text origin used for rendering.
-- Added multi-link mock response fixture for link alignment checks.
-- Added local `/build` and `빌드` commands that run `tools/build.sh` without calling an LLM.
-- Build command results are appended as work cards with exit code, elapsed time, executable timestamp, and output tail.
-- Added local `/capture` and `캡처` commands that save the current OrangeCode window as PNG without calling an LLM.
-- Capture command results are appended as work cards with HRESULT, output path, file size, and elapsed time.
-- Added local `/verify` and `검증` command that runs build first and capture after a successful build.
-- `/verify` stops with an error card if the build fails.
-- Added `AttachmentStore` for `%APPDATA%\OrangeCode\attachments\<session>\manifest.json`.
-- Manager prompts now include the attachment manifest path when present.
-- Added zero-cost diagnostics: `--diagnose-attachments` and `--diagnose-manager-prompt`.
+## Verification Snapshot
 
-## Completed On 2026-05-04
+- Source version currently records `0.1.0.57` in
+  `code/windows/w1/resource.h`.
+- Multiple Release x64 builds passed during the 2026-05-06 work. Some builds
+  used `bin\ReleaseVerify\OrangeCode.exe` when the running app locked
+  `bin\Release\OrangeCode.exe`.
+- Mock captures exist for UI/settings/retry/sidebar checks under
+  `code/windows/w1/tools/`.
 
-- Codex global config now treats `CLAUDE.md` as a fallback project instruction file:
-  - `%USERPROFILE%\.codex\config.toml`
-  - `project_doc_fallback_filenames = ["CLAUDE.md"]`
-  - This avoids creating per-repo `AGENTS.md` files for Claude Code-compatible projects.
-- Removed the temporary root `AGENTS.md` wrapper that only pointed to `CLAUDE.md`.
-- Replaced the custom-drawn input attachment glyph with the Windows system icon font:
-  - `code/windows/w1/OrangeInput.h`
-  - Uses `Segoe MDL2 Assets` glyph `\xE723` (`Attach`) instead of hand-drawn Direct2D lines.
-- Removed hardcoded Gemini model selection from Jeong Team Lead's Gemini backend:
-  - Old fixed model: `gemini-2.5-flash-lite`
-  - New behavior: omit `-m` when no model is configured, letting Gemini CLI choose from its own defaults/settings.
-- Added Gemini model configuration through `%APPDATA%\OrangeCode\settings.json`:
-  - `code/windows/w1/AppSettings.h` loads `gemini.model`.
-  - `code/windows/w1/GeminiPrintBackend.cpp` appends `-m "<model>"` only when `gemini.model` is non-empty.
-  - Current local default is `"model": ""`.
+## Known Risks
 
-## Verified On 2026-05-05
+- The git worktree is very dirty, with many untracked generated files and
+  captures. Do not assume every changed file is intentional product source.
+- Some older Korean text in markdown files is mojibake. Prefer source code,
+  DB prompt rows, and recent verified task files over corrupted archive text.
+- Old build-publication reminders are stale unless the current DB job or latest
+  user message repeats that request.
 
-- Confirmed all three CLIs are installed and callable from PATH:
-  - Claude Code: `claude.cmd --version` -> `2.1.123 (Claude Code)`
-  - Gemini CLI: `gemini.cmd --version` -> `0.40.1`
-  - Codex CLI: `codex.cmd --version` -> `codex-cli 0.128.0`
-- Confirmed OrangeCode can call each backend individually:
-  - `--test-backend claude` returned `CLAUDE_OK`, capture `tools/three-call-claude.png`
-  - `--test-backend gemini` returned `GEMINI_OK`, capture `tools/three-call-gemini.png`
-  - `--test-backend codex` returned `CODEX_OK`, capture `tools/three-call-codex.png`
-- Confirmed OrangeCode can call all three backends from one prompt:
-  - `--test-backend all` returned `Codex_COUNCIL_OK`, `Claude_COUNCIL_OK`, and `Gemini_COUNCIL_OK`
-  - capture `tools/three-call-all.png`
-  - screen log also recorded the three roles: `assistant-codex`, `assistant-claude`, `assistant-gemini`
-- Note: the `all` test process did not self-exit after capture in one run; the test PID was manually stopped. Existing user OrangeCode process was left untouched.
+## Next Useful Work
 
-## Settings Contract
+1. Confirm the running app is actually using the latest intended Release build.
+2. Run one end-to-end DB-first manager loop: user request -> job row -> bounded
+   implementation or local command -> build/mock/capture evidence -> concise
+   final report.
+3. Clean the repository working tree by separating source changes from generated
+   diagnostics, captures, and temporary JSON files.
+4. Normalize or remove mojibake task/archive documents only when they affect the
+   current manager loop.
 
-OrangeCode user settings live at:
-
-```text
-%APPDATA%\OrangeCode\settings.json
-```
-
-Gemini model selection:
-
-```json
-{
-  "gemini": {
-    "model": ""
-  }
-}
-```
-
-- Empty or missing `gemini.model`: do not pass `-m`; Gemini CLI chooses the model.
-- Non-empty `gemini.model`: pass `-m "<value>"` to Gemini CLI.
-
-## Verification
+## Preferred Verification
 
 ```powershell
 cd O:\Work\OrangeLabs\Orange\Orange-AI\code\windows\w1
 & "C:\Program Files\Git\bin\bash.exe" tools/build.sh
-.\bin\Release\OrangeCode.exe --diagnose-manager-env .\tools\manager-env.txt
-.\bin\Release\OrangeCode.exe --test-backend mock --test-prompt "manager smoke test" --test-response-file tools\mock-code-response.md --test-capture tools\code-card-contained.png
-.\bin\Release\OrangeCode.exe --test-backend mock --test-prompt-file tools\mock-prompt.txt --test-response-file tools\mock-code-response.md --test-capture tools\work-card-verification-spacing.png
-.\bin\Release\OrangeCode.exe --test-backend mock --test-prompt-file tools\mock-prompt.txt --test-response-file tools\mock-table-response.md --test-capture tools\table-render-cleaner.png
-.\bin\Release\OrangeCode.exe --test-backend mock --test-prompt-file tools\mock-prompt.txt --test-response-file tools\mock-table-response.md --test-capture tools\verification-real-values.png
-.\bin\Release\OrangeCode.exe --test-backend mock --test-prompt-file tools\mock-prompt.txt --test-response-file tools\mock-links-response.md --test-capture tools\link-hit-alignment.png
-.\bin\Release\OrangeCode.exe --test-prompt /build --test-capture tools\build-command-card.png --test-capture-ms 9000 --test-exit-ms 12000
-.\bin\Release\OrangeCode.exe --test-prompt /capture --test-capture tools\capture-command-card.png --test-capture-ms 2500 --test-exit-ms 4200
-.\bin\Release\OrangeCode.exe --test-prompt /verify --test-capture tools\verify-command-card.png --test-capture-ms 11000 --test-exit-ms 14000
-.\bin\Release\OrangeCode.exe --diagnose-attachments tools\attachment-diagnostic.txt
+.\bin\Release\OrangeCode.exe --prompt-api show --chat-key <chat-key> --prompt-api-output tools\prompt-api-show.json
 .\bin\Release\OrangeCode.exe --diagnose-manager-prompt tools\manager-prompt-diagnostic.txt
+.\bin\Release\OrangeCode.exe --test-backend mock --test-prompt "/settings" --test-capture tools\settings-command.png
 ```
-
-Most recent build verification:
-
-```powershell
-cd O:\Work\OrangeLabs\Orange\Orange-AI\code\windows\w1
-& "C:\Program Files\Git\bin\bash.exe" tools/build.sh
-```
-
-Result: Release build passed after the attachment icon and Gemini settings changes.
-
-Observed diagnostic:
-
-```text
-ORANGE_CODE_ROOT=O:\Work\OrangeLabs\Orange\Orange-AI\code\windows\w1
-ORANGE_CODE_ROLE=manager
-ORANGE_CODE_SESSION_KEY=default
-```
-
-## Next
-
-1. Add drag-and-drop file ingestion and copy files into `AttachmentStore`.
-2. Generate WIC image thumbnails and render attachment cards.
-3. Auto-register `/capture` output as an attachment.
-4. Add a UI/settings surface for editing `gemini.model` if users need it; for now edit `settings.json` directly.
-5. Run one real backend call after the manager prompt wrapper when quota use is approved.
-6. Keep UI tests on mock backend by default.

@@ -1,0 +1,31 @@
+# API 키 — 절대 커밋 금지
+api_key.h
+
+# 빌드 산출물
+bin/
+obj/
+.vs/
+
+# Visual Studio 사용자별 설정
+*.vcxproj.user
+
+# MSVC 산출물 (bin/ 외 자리에 만들어지는 경우 안전망)
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.exe
+
+# 백업·잠긴 파일 임시 처리 흔적
+*.old
+*.bak
+
+# OS
+Thumbs.db
+*.swp
+
+# 캡처 산출물 (자가 검증용 임시)
+tools/last-capture.png
+tools/*.log

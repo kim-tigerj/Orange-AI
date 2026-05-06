@@ -40,6 +40,11 @@ Do not reread all logs or all markdown files.
 4. Use mock/capture verification when possible.
 5. Report briefly.
 
-## Cost Discipline
+## Build Mode
 
-Default to offline verification. Do not call Claude/Gemini just to inspect UI. Use real backend calls only when backend behavior or manager awakening is being verified.
+Always build in Release (x64). Use `bin\Release\` as the primary output path.
+Debug builds are only permitted temporarily for crash reproduction; document the exception explicitly.
+
+## Collaboration-First Budget Discipline
+
+Fast collaboration and response are the first priority. Use Claude/Gemini/Codex when their input materially improves direction, review, recovery, or backend behavior. Save cost by keeping prompts bounded, avoiding duplicate context dumps, using mock/capture for mechanical UI checks, and not retrying failed providers without a new reason.

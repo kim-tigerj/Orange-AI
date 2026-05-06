@@ -1,0 +1,37 @@
+﻿// Code.rc — Win32 리소스 스크립트.
+// 앱 아이콘 + VERSIONINFO. 추후 메뉴·다이얼로그 추가 시 여기에 누적.
+
+#include "resource.h"
+#include <winver.h>
+
+IDI_APPICON ICON "app.ico"
+
+// ── 버전 리소스 — OrangeCode.exe 우클릭 → 속성 → 세부 정보 탭에 노출 ──
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION    APP_VER_MAJOR,APP_VER_MINOR,APP_VER_PATCH,APP_VER_BUILD
+ PRODUCTVERSION APP_VER_MAJOR,APP_VER_MINOR,APP_VER_PATCH,APP_VER_BUILD
+ FILEFLAGSMASK  0x3FL
+ FILEFLAGS      0x0L
+ FILEOS         0x40004L
+ FILETYPE       0x1L
+ FILESUBTYPE    0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName",      "Orange Labs"
+            VALUE "FileDescription",  "Orange Code"
+            VALUE "FileVersion",      APP_VER_STR
+            VALUE "InternalName",     "OrangeCode"
+            VALUE "LegalCopyright",   "Copyright (C) 2026 Orange Labs"
+            VALUE "OriginalFilename", "OrangeCode.exe"
+            VALUE "ProductName",      "Orange Code"
+            VALUE "ProductVersion",   APP_VER_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 0x04B0
+    END
+END

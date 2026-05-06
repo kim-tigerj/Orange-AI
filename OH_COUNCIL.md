@@ -11,6 +11,11 @@ Oh-Council, also called **오감독 3자 협업체계** or **Oh Supervisor 3-Way
 Collaboration System**, is the project protocol for using Claude Code, Gemini,
 and Codex together.
 
+오감독 is not a single Codex actor. From 2026-05-05 onward, 오감독 means the
+three-party supervisory council operated through Claude Code, Gemini, and Codex.
+When one local CLI session performs the edits, it is acting as the council's
+executor/chair, not replacing the council.
+
 The goal is not simple parallel work. The goal is better decisions, better work
 direction, and stronger verification by making the three systems expose and
 check each other's blind spots.
@@ -140,6 +145,8 @@ The `all` test produced:
 Use these files so other CLI sessions can recover the collaboration state:
 
 - `OH_COUNCIL.md`: this protocol
+- `OH_COUNCIL_STATUS.md`: visible CLI status board for who said what, who owns
+  execution, and what evidence exists
 - `MANAGER_HANDOFF.md`: current project state and recent verification
 - `doc/DECISIONS.md`: final decisions and reasoning
 - task specs or reports under `code/windows/w1/tasks/` and `code/windows/w1/reports/`

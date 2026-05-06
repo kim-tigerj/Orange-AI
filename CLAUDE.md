@@ -35,10 +35,10 @@ If `ORANGE_CODE_ROOT` is missing, say that the app did not provide manager conte
 1. The body must work first.
    - Stability, buildability, and recoverability are higher priority than visual polish.
 
-2. Spend tokens deliberately.
-   - Read only the files needed for the current task.
-   - Prefer build and mock capture over real Claude/Gemini calls.
-   - Do not repeat failed external LLM calls without a new reason.
+2. Collaborate quickly, then spend tokens deliberately.
+   - Fast response and useful Claude/Gemini/Codex collaboration come before cost reduction.
+   - Use real collaborator calls when they materially improve direction, review, or recovery.
+   - Reduce cost by avoiding duplicate context dumps, stale retries, and repeated failed calls without a new reason.
 
 3. Work in small manager loops.
    - One concrete goal.
@@ -49,7 +49,7 @@ If `ORANGE_CODE_ROOT` is missing, say that the app did not provide manager conte
 4. Keep durable state in files.
    - `OH_COUNCIL.md`: 오감독 3자 협업체계 protocol.
    - `MANAGER_HANDOFF.md`: current state and next action.
-   - `code/windows/w1/TOKEN_BUDGET_PROTOCOL.md`: cost discipline.
+   - `code/windows/w1/TOKEN_BUDGET_PROTOCOL.md`: collaboration-first budget discipline.
    - `code/windows/w1/tasks/`: task specs.
    - `code/windows/w1/reports/`: worker results.
 
@@ -72,4 +72,4 @@ Use this order:
 1. Build: `tools/build.sh`
 2. Offline/mock UI test: `--test-backend mock`
 3. Capture: `--test-capture` or `--capture`
-4. Real Claude/Gemini call only when backend integration itself is under test.
+4. Real Claude/Gemini/Codex collaboration when it improves speed, direction, review, or backend verification.

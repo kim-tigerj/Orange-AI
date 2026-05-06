@@ -124,3 +124,26 @@ Release ?듦낵 ??3726 ?⑥닔 (+2 ?좉퇋). 寃쎄퀬 2嫄댁? `NameInputDialog
 2. **+ ?????multi-target** ???꾩옱 default ?쒖젙, 媛??꾨줈?앺듃蹂?+ ???????
 3. **硫뷀? ?몄쭛 ?뺤옣** ??purpose / criteria / progress / status ???몄쭛 媛??
 4. **?쒓뎅???뺣━ ?붿뿬** ??CYCLES.md / CYCLES_OUT.md / MESSAGES.md / USER_COMMANDS.md.
+
+---
+
+## manager follow-up - 2026-05-05
+
+Current source had moved sidebar handling from `main.cpp` into `MainWindow.cpp`.
+The older report was partly stale: `NameInputDialog` initial text and
+`CSidebar::Row::projectId` existed, but Goal/Project double-click rename was not
+active in the current `MainWindow.cpp` path.
+
+Fixed:
+- `MainWindow.cpp`: Goal/Project double-click now opens `PromptForName` with the
+  current title, saves `CGoal` / `CProject` title, and refills the sidebar.
+- `MainWindow.cpp`: sidebar context menu also exposes `Rename` for Goal/Project.
+- `MainWindow.h`: added `RenameSidebarMeta`.
+
+Verification:
+- Normal `bin\Release\OrangeCode.exe` link failed because the running app had the
+  executable locked (`LNK1104`).
+- Alternate Release build succeeded:
+  `MSBuild Code.vcxproj /p:Configuration=Release /p:Platform=x64 /p:OutDir=bin\ReleaseVerify\ /p:IntDir=obj\x64\ReleaseVerify\`
+- Mock capture succeeded:
+  `bin\ReleaseVerify\OrangeCode.exe --test-backend mock --test-capture tools\sidebar-meta-edit-smoke.png`

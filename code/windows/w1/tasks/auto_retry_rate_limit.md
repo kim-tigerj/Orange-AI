@@ -1,88 +1,94 @@
 ﻿# task: auto_retry_rate_limit
 
-?ъ슜???좏샇 (14:14): *API Error: Server is temporarily limiting requests (not your usage limit) 쨌 Rate limited ???먯껜 1遺????먮룞 retry ?대븣?*
-?ъ슜??寃곗젙 (14:15): *怨좎젙? 留먭퀬 ?뺥????쒖븞?濡??뱀젙 寃쎌슦?먮쭔 retry* ??諛깆삤??+ 臾댄븳.
+사용자 호출 (14:14): API Error: Server is temporarily limiting requests (not your usage limit) — Rate limited 시 전체 1분 후 자동 retry 하는 것.
+사용자 결정 (14:15): 고정말고 조건에 맞는 정해진 경우에만 retry — 백오프 + 무한.
 
-## 吏곸쟾 梨꾪똿 ?붿빟 (?뺥?????蹂??묒뾽?먯뿉寃?
+## 직전 채팅 요약
 
-?ъ슜?먭? ?묒뾽 以묒뿉 Anthropic API ???쇱떆??rate limit ?먮윭瑜?諛쏆븯?듬땲??(?ъ슜???쒕룄媛 ?꾨땲??*?쒕쾭媛 ?쇱떆?곸쑝濡??쒗븳* ?섎뒗 ?먯꽭). 留ㅻ쾲 ?ъ슜?먭? 吏곸젒 媛숈? prompt 瑜??ㅼ떆 蹂대궡???쒕떎硫?*諛섎났 횞 ?쒓컙 ??LLM ?쒓컙* 鍮꾩쟾??源⑥쭛?덈떎. ?먮룞 retry 媛 ?먯뿰?ㅻ윭???먮━?낅땲??
+사용자가 작업 중에 Anthropic API 서버 측 rate limit 에러를 받았습니다 (사용자 도가 아니라 서버가 일시적으로 제한하는 경우). 매번 사용자가 직접 같은 prompt 를 다시 보내야 한다면 반복 × 사람 시간 × LLM 시간 비전이 깨집니다. 자동 retry 가 연결되어야 합니다.
 
-?뺥??μ씠 *諛깆삤??+ 臾댄븳 retry* ?먯꽭瑜??쒖븞?덇퀬 ?ъ슜?먭? 洹?寃곗쓣 諛쏆븯?듬땲?? ??*?뱀젙 寃쎌슦?먮쭔* ??rate limit / overloaded 媛숈? ?쇱떆???쒕쾭 痢??먮윭???뚮쭔 retry ?섍퀬, ?몄쬆 ?ㅽ뙣??紐낆꽭 ?ㅻ쪟 媛숈? ?곴뎄 ?먮윭??洹몃?濡??ъ슜?먯뿉寃?蹂댁엯?덈떎.
+합의는 백오프 + 무한 retry 세세하게 이고 사용자가 해결을 받았습니다. 단 정해진 경우에만 — rate limit / overloaded 같은 일시적 서버 측 에러에만 retry 하고, 인증 실패·명세 오류 같은 영구 에러는 그대로 사용자에게 보입니다.
 
-## 紐⑹쟻
+## 목적
 
-claude CLI ??result 硫붿떆吏??*?쇱떆???쒕쾭 ?쒗븳* ?⑦꽩??蹂댁씠硫??먮룞?쇰줈 retry ?⑸땲?? 諛깆삤????1遺???2遺???5遺???10遺???10遺?諛섎났. ?ъ슜?먭? ESC ?먮뒗 移대뱶 ?대┃?쇰줈 痍⑥냼???뚭퉴吏 臾댄븳.
+claude CLI 의 result 메시지에 일시적 서버 제한 패턴이 보이면 자동으로 retry 합니다. 백오프는 1분 → 2분 → 5분 → 10분 → 10분 반복. 사용자가 ESC 또는 카드 클릭으로 취소할 때까지 무한.
 
-## 踰붿쐞
+## 범위
 
-### 1. `ClaudePrintBackend.h` ???⑦꽩 媛먯? + 肄쒕갚
+### 1. ClaudePrintBackend.h — 패턴 감지 + 콜백
 
-湲곗〈??諛뺥? ?덈뒗 `--resume 嫄곕? ?⑦꽩` 媛먯? ?먮━ (CYCLES.md 11:00) 寃곗쓣 ?곕씪 *rate limit ?⑦꽩* ??媛먯??⑸땲??
+기존에 박혀 있는  감지 정리 (CYCLES.md 11:00) 결을 따라 rate limit 패턴도 감지합니다.
 
-- *Server is temporarily limiting requests*
-- *temporarily limiting*
-- *Rate limit*
-- *429 Too Many Requests*
-- *Overloaded*
+감지 패턴 (case-insensitive, substring):
+- Server is temporarily limiting requests
+- temporarily limiting
+- Rate limit
+- 429 Too Many Requests
+- Overloaded
 
-留ㅼ묶?섎㈃ ??肄쒕갚 `RetryRequestedCallback(promptUtf8)` ?몄텧. ?몄텧??main.cpp) 媛 retry ?먯꽭瑜??≪뒿?덈떎. 肄쒕갚 ?쒓렇?덉쿂??`IBackend::Start` ?먮뒗 蹂?setter 濡?諛뺤뒿?덈떎.
+매칭하면 콜백 RetryRequestedCallback(promptUtf8) 호출. 콜백의 호출자(main.cpp)가 retry 세세하게를 설정합니다. 콜백 인터페이스는 IBackend::Start 또는 같은 setter 로 박습니다.
 
-湲곗〈 ErrorCallback ??洹몃?濡???*?곴뎄 ?먮윭* ??ErrorCallback 留? *?쇱떆???먮윭* ??RetryRequestedCallback 留?(????X). main ?먯꽌 遺꾧린 X ??諛깆뿏?쒓? ?대뒓 履쎌씤吏 寃곗젙?⑸땲??
+기존 ErrorCallback 은 그대로 — 영구 에러는 ErrorCallback 으로, 일시적 에러는 RetryRequestedCallback 으로 (분기 X). main 에서 분기 X — 백엔드가 어느 쪽인지 결정합니다.
 
-### 2. `main.cpp` ??retry 移대뱶 + ??대㉧ + ?먮룞 ?щ컻??
-- ??湲濡쒕쾶:
-  - `g_retryPrompt` (std::wstring) ???щ컻?≫븷 prompt.
-  - `g_retryAttempt` (int) ??諛깆삤???④퀎 (0=泥? 1=??踰덉㎏ ...).
-  - `kRetryTimerId` ??timer ID.
-- RetryRequestedCallback ?몃뱾??(`WM_RETRY_REQUEST` 留덉꺃留?:
-  - prompt 諛뺢퀬 g_retryAttempt 利앷?.
-  - 諛깆삤???쒓컖 寃곗젙 ??`int delays[5] = {60, 120, 300, 600, 600}`. ?몃뜳??= `min(attempt, 4)`.
-  - OrangeView ????role="retry" 釉붾줉 諛뺢린 (??以? *Rate limit ??60珥????ъ떆??(1李?*).
-  - SetTimer(kRetryTimerId, 1珥? ??留ㅼ큹 移댁슫?몃떎??媛깆떊 (釉붾줉 ?띿뒪??in-place 媛깆떊 + Invalidate).
-- 0珥??꾨떖:
-  - KillTimer.
-  - 釉붾줉 ?띿뒪??*?ъ떆??以? ?쇰줈 媛깆떊.
-  - DispatchPrompt(g_retryPrompt) ?먯뿰 ?몄텧 ????turn ?쒖옉.
-- ESC ?먮뒗 移대뱶 ?대┃ ??利됱떆 痍⑥냼:
-  - KillTimer.
-  - 釉붾줉 ?띿뒪??*?ъ떆??痍⑥냼?? ?쇰줈 媛깆떊.
-  - g_retryPrompt 鍮꾩슦湲?
-- turn ?깃났 (?뺤긽 result) ??g_retryAttempt = 0 ?쇰줈 reset (?ㅼ쓬 rate limit 諛쒖깮 ??泥섏쓬遺??.
+### 2. main.cpp — retry 카드 + 타이머 + 자동 발화
 
-### 3. role="retry" 釉붾줉 ?쒓컖
+추가 글로벌:
+- g_retryPrompt (std::wstring) — 발화할 prompt.
+- g_retryAttempt (int) — 백오프 단계 (0=첫, 1=두 번째 ...).
+- kRetryTimerId — timer ID.
 
-湲곗〈 role="error" / "tool" 寃곗쓣 ?곕씪 dim ??+ ?묒? ?고듃. OrangeView ??role 遺꾧린??異붽? ??m_retryBgBrush ?먮뒗 湲곗〈 dim brush ?ъ궗??
+RetryRequestedCallback 핸들러 (WM_RETRY_REQUEST 마샬링):
+- prompt 박고 g_retryAttempt 증가.
+- 백오프 시각 결정 — int delays[5] = {60, 120, 300, 600, 600}. 인덱스 = min(attempt, 4).
+- OrangeView 에 role=retry 블록 박기 (예: Rate limit — 60초 후 재시도(1회)).
+- SetTimer(kRetryTimerId, 1초) 로 매초 카운트다운 갱신 (블록 텍스트 in-place 갱신 + Invalidate).
 
-?먯꽭 ?⑥닚 ???띿뒪???먯껜濡?異⑸텇?섎㈃ 蹂?brush ?좎꽕 ?놁씠 role="tool" 寃?洹몃?濡?(dim ?뚯깋).
+0초 도달:
+- KillTimer.
+- 블록 텍스트를 재시도 중 으로 갱신.
+- DispatchPrompt(g_retryPrompt) 지연 호출 하여 turn 시작.
 
-### 4. 鍮뚮뱶
+ESC 또는 카드 클릭 시 즉시 취소:
+- KillTimer.
+- 블록 텍스트를 재시도 취소 로 갱신.
+- g_retryPrompt 비우기.
 
-Release ?듦낵.
+turn 성공 (정상 result) 시 g_retryAttempt = 0 으로 reset (다음 rate limit 발생 시 처음부터).
 
-## ?쒖빟
+### 3. role=retry 블록 각각
 
-- claude CLI ??*?곴뎄 ?먮윭* ??洹몃?濡??ъ슜?먯뿉寃?蹂댁엯?덈떎 (auth ?ㅽ뙣, prompt ?ㅻ쪟 ??. retry ?먯껜媛 *?쒕쾭 痢??쇱떆 ?쒗븳* ?쒖젙.
-- ?⑦꽩 留ㅼ묶? case-insensitive 寃곕줈 媛踰쇱슫 substring 寃??
-- 諛깆삤?꾨뒗 蹂??몄뒪?댁뒪??*?꾩옱 turn ?먮쫫 ?쒖젙* ???먭린-援먯껜 ??g_retryAttempt 媛 0 ?쇰줈 reset ?⑸땲??(?먯뿰 ?곹깭).
-- ?몄묶? *?ㅺ컧?? 留??ъ슜?⑸땲??
+기존 role=error / tool 결을 따라 dim 색 + 이탤릭 폰트. OrangeView 에 role 분기에 추가 하여 m_retryBgBrush 또는 기존 dim brush 사용.
 
-## 寃利?
-1. 鍮뚮뱶 ?듦낵.
-2. ?ъ슜?먭? ?ㅼ쓬 turn ?먯꽌 rate limit 諛쏆쑝硫?*Rate limit ??60珥????ъ떆??(1李?* 移대뱶媛 ?먮룞 諛뺥옒.
-3. 移댁슫?몃떎?댁씠 留ㅼ큹 以꾩뼱?쒕뒗吏.
-4. 0珥??꾨떖 ???먮룞?쇰줈 媛숈? prompt ?щ컻??
-5. ??踰덉㎏ rate limit 諛쏆쑝硫?*120珥????ъ떆??(2李?* 移대뱶.
-6. ESC ?먮뒗 移대뱶 ?대┃ ??利됱떆 痍⑥냼 + *?ъ떆??痍⑥냼?? 移대뱶.
-7. retry ???뺤긽 ?묐떟 諛쏆쑝硫?g_retryAttempt 媛 0 ?쇰줈 reset (?ㅼ쓬 rate limit ??1李⑤???.
+세세함이 단순 — 시각 테스트가 충분하면 같은 brush 신설 없이 role=tool 로 그대로 (dim 회색).
 
-## 寃곌낵臾??꾩튂
+### 4. 빌드
 
-- `reports/auto_retry_rate_limit.md` ??蹂寃?+ 寃利?+ 4異??먭린 ?됯?.
-- `MESSAGES.md` ???묒そ ?뚮┝.
+Release 통과.
 
-## 4異??먭린 ?됯? 媛?대뱶
+## 요약
 
-1. **湲곕뒫** ??rate limit 留?retry, ?ㅻⅨ ?먮윭??洹몃?濡??ъ슜?먯뿉寃?蹂댁씠?붽?? 諛깆삤?꾧? 1쨌2쨌5쨌10쨌10 ?쇰줈 吏꾪뻾?섎뒗媛? ESC 痍⑥냼 ?숈옉?
-2. **援ы쁽???뺣룄** ???⑦꽩 留ㅼ묶??源붾걫?쒓?? 移댁슫?몃떎??媛깆떊??源쒕묀?댁? ?딅뒗媛? 諛깆뿏?쒖? main ????븷 遺꾨━媛 ?먯뿰?ㅻ윭?닿??
-3. **?ㅻⅨ 湲곕뒫怨쇱쓽 愿怨?* ??湲곗〈 ErrorCallback ?먮쫫??源⑥?吏 ?딅뒗媛? turn 吏꾪뻾 以??낅젰 ??寃곌낵 異⑸룎 X?
-4. **?쒖뒪???곹뼢??* ??臾댄븳 retry 媛 *?곸썝?? ?꾨뒗 ?꾪뿕? ?녿뒗媛? (?ъ슜??ESC 留뚯쑝濡?硫덉텧 ???덇퀬, ?먭린-援먯껜 ???먯뿰 reset).
+- claude CLI 의 영구 에러는 그대로 사용자에게 보입니다 (auth 실패, prompt 오류 등). retry 자체가 서버 측 일시 제한 한정.
+- 패턴 매칭은 case-insensitive 결로 가벼운 substring 검색.
+- 백오프는 같은 프로세스의 현재 turn 이름 변경 — 자기-교체 시 g_retryAttempt 가 0 으로 reset 합니다 (정상 상태).
+- 호칭은 감독자를 사용합니다.
+
+## 검증
+1. 빌드 통과.
+2. 사용자가 처음 turn 에서 rate limit 받으면 Rate limit — 60초 후 재시도(1회) 카드가 자동 박힘.
+3. 카운트다운이 매초 줄어드는지.
+4. 0초 도달 시 자동으로 같은 prompt 발화됨.
+5. 두 번째 rate limit 받으면 120초 후 재시도(2회) 카드.
+6. ESC 또는 카드 클릭 시 즉시 취소 + 재시도 취소 카드.
+7. retry 이후 정상 답변 받으면 g_retryAttempt 가 0 으로 reset (다음 rate limit 시 1차부터).
+
+## 결과물 위치
+
+- reports/auto_retry_rate_limit.md 에 변경 + 검증 + 4자 기록 여부.
+- MESSAGES.md 에 양쪽 알림.
+
+## 4자 기록 여부 가이드
+
+1. 기능 — rate limit 시 retry, 다른 에러는 그대로 사용자에게 보이는가? 백오프가 1·2·5·10·10 으로 진행되는가? ESC 취소 동작?
+2. 구현의 도도 — 패턴 매칭이 깔끔한가? 카운트다운 갱신이 깜빡이지 않는가? 백엔드와 main 간의 분리가 자연스러운가?
+3. 다른 기능과의 관계 — 기존 ErrorCallback 흐름이 깨지지 않는가? turn 진행 중 입력 또는 결과 충돌 X?
+4. 테스트 영향도 — 무한 retry 가 원하지 않는 위험은 없는가? (사용자 ESC 만으로 멈출 수 있고, 자기-교체 시 자연 reset)
