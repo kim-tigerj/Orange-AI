@@ -3327,6 +3327,23 @@ class Q1Engine:
         payload = {"name": name, "arguments": arguments}
         return "<tool_call>\n" + json.dumps(payload, ensure_ascii=False, sort_keys=True) + "\n</tool_call>"
 
+    def model_call_metrics(self, prompt_payload, output_text, elapsed_ms, source_chars=0, max_tokens=None):
+        prompt_chars = len(prompt_payload)
+        output_chars = len(output_text or "")
+        elapsed_seconds = round(elapsed_ms / 1000, 3) if elapsed_ms is not None else None
+        chars_per_second = round(output_chars / elapsed_seconds, 3) if elapsed_seconds and output_chars else 0
+        seconds_per_1k_output_chars = round(elapsed_seconds / (output_chars / 1000), 3) if elapsed_seconds and output_chars else 0
+        return {
+            "elapsed_ms": elapsed_ms,
+            "elapsed_seconds": elapsed_seconds,
+            "prompt_chars": prompt_chars,
+            "output_chars": output_chars,
+            "source_chars": source_chars,
+            "max_tokens": max_tokens,
+            "output_chars_per_second": chars_per_second,
+            "seconds_per_1k_output_chars": seconds_per_1k_output_chars,
+        }
+
     def self_play_model_one(self, target, problem):
         try:
             path, func_name = parse_function_target(target)
@@ -3373,6 +3390,13 @@ class Q1Engine:
         else:
             proposed_tool_call = text
         prompt_payload = json.dumps(messages, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        metrics = self.model_call_metrics(
+            prompt_payload,
+            text,
+            elapsed_ms,
+            source_chars=len(func_source),
+            max_tokens=1024,
+        )
         proposal = self.create_proposal(
             target=target,
             problem=problem,
@@ -3383,14 +3407,16 @@ class Q1Engine:
             source="self-play-model-v1",
             model_call_metadata={
                 "server_url": self.server_url,
-                "elapsed_ms": elapsed_ms,
                 "cache_hit": False,
                 "prompt_hash": hashlib.sha256(prompt_payload.encode("utf-8")).hexdigest(),
-                "max_tokens": 1024,
+                **metrics,
             },
             model_output_raw=text,
         )
-        console.print(f"self_play_model_one: id={proposal['id']} target={target} kind={parsed['kind']} elapsed_ms={elapsed_ms}")
+        console.print(
+            f"self_play_model_one: id={proposal['id']} target={target} kind={parsed['kind']} "
+            f"elapsed_ms={elapsed_ms} prompt_chars={metrics['prompt_chars']} output_chars={metrics['output_chars']}"
+        )
         return proposal
 
     def _pick_self_play_target(self, existing_count, index):
@@ -3879,6 +3905,7 @@ class Q1Engine:
                 "proposal_source": proposal.get("source"),
                 "rejection_reason": rejection_reason,
                 "model_parse_reason": parse_reason,
+                "model_call": proposal.get("model_call_metadata") or {},
             },
         }
 
@@ -3886,12 +3913,20 @@ class Q1Engine:
         self.ensure_proposal_dirs()
         os.makedirs(DATASET_ROOT, exist_ok=True)
         samples = []
+        all_model_metric_items = []
         for status, directory in self.proposal_dirs().items():
             for name in self.list_json_files(directory):
                 try:
                     proposal = self.load_json_file(os.path.join(directory, name))
                 except (OSError, json.JSONDecodeError):
                     continue
+                model_call = proposal.get("model_call_metadata") or {}
+                if (
+                    proposal.get("source") == "self-play-model-v1"
+                    and isinstance(model_call.get("elapsed_ms"), (int, float))
+                    and model_call.get("elapsed_ms") > 0
+                ):
+                    all_model_metric_items.append(model_call)
                 samples.append(self.proposal_to_lora_sample(proposal, self.proposal_lora_label(proposal, status)))
         unique = {}
         label_priority = {"rejected": 4, "positive": 3, "accepted_read_only": 2, "proposal_pending": 1}
@@ -3945,6 +3980,32 @@ class Q1Engine:
         if parse_reason_counts:
             for reason, count in sorted(parse_reason_counts.items(), key=lambda item: (-item[1], item[0])):
                 lines.append(f"- {reason}: {count}")
+        else:
+            lines.append("- none")
+        lines.extend(["", "## Model Call Metrics"])
+        if all_model_metric_items:
+            def average_metric(name):
+                values = [
+                    item.get(name)
+                    for item in all_model_metric_items
+                    if isinstance(item.get(name), (int, float))
+                ]
+                return round(sum(values) / len(values), 3) if values else 0
+            lines.append(f"- calls: {len(all_model_metric_items)}")
+            elapsed_seconds = [
+                item.get("elapsed_seconds")
+                if isinstance(item.get("elapsed_seconds"), (int, float))
+                else item.get("elapsed_ms") / 1000
+                for item in all_model_metric_items
+                if isinstance(item.get("elapsed_ms"), (int, float))
+            ]
+            average_elapsed_seconds = round(sum(elapsed_seconds) / len(elapsed_seconds), 3) if elapsed_seconds else 0
+            lines.append(f"- average_elapsed_seconds: {average_elapsed_seconds}")
+            lines.append(f"- average_prompt_chars: {average_metric('prompt_chars')}")
+            lines.append(f"- average_output_chars: {average_metric('output_chars')}")
+            lines.append(f"- average_source_chars: {average_metric('source_chars')}")
+            lines.append(f"- average_output_chars_per_second: {average_metric('output_chars_per_second')}")
+            lines.append(f"- average_seconds_per_1k_output_chars: {average_metric('seconds_per_1k_output_chars')}")
         else:
             lines.append("- none")
         with open(report_path, "w", encoding="utf-8") as f:

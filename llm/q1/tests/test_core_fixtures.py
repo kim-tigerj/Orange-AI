@@ -58,6 +58,16 @@ class Q1CoreFixtureTests(unittest.TestCase):
             self.assertEqual(self.engine.read_response_cache(messages, 32), "cached answer")
             self.assertIsNone(self.engine.read_response_cache(messages, 33))
 
+    def test_model_call_metrics_calculates_speed_fields(self):
+        metrics = self.engine.model_call_metrics("prompt", "output text", 2500, source_chars=123, max_tokens=512)
+        self.assertEqual(metrics["elapsed_seconds"], 2.5)
+        self.assertEqual(metrics["prompt_chars"], 6)
+        self.assertEqual(metrics["output_chars"], 11)
+        self.assertEqual(metrics["source_chars"], 123)
+        self.assertEqual(metrics["max_tokens"], 512)
+        self.assertEqual(metrics["output_chars_per_second"], 4.4)
+        self.assertEqual(metrics["seconds_per_1k_output_chars"], 227.273)
+
     def test_proposal_to_lora_sample_contains_assistant_response(self):
         proposal = {
             "id": "p1",
@@ -84,12 +94,14 @@ class Q1CoreFixtureTests(unittest.TestCase):
             "proposed_tool_call": "broken",
             "rejection": {"reason": "tool_parse: missing or malformed tool_call"},
             "model_output_raw": "broken",
+            "model_call_metadata": {"elapsed_seconds": 1.5, "prompt_chars": 10, "output_chars": 20},
         }
         sample = self.engine.proposal_to_lora_sample(proposal, "rejected")
         metadata = sample["metadata"]
         self.assertEqual(metadata["proposal_source"], "self-play-model-v1")
         self.assertEqual(metadata["rejection_reason"], "tool_parse: missing or malformed tool_call")
         self.assertEqual(metadata["model_parse_reason"], "no_tool_call")
+        self.assertEqual(metadata["model_call"]["prompt_chars"], 10)
 
     def test_proposal_rejection_reason_uses_gate_failure(self):
         proposal = {

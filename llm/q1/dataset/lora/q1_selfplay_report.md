@@ -1,6 +1,6 @@
 # q1 LoRA Dataset Report
 
-- generated_at: 2026-05-06 13:45:01
+- generated_at: 2026-05-06 17:04:46
 - output: llm/q1/dataset/lora/q1_selfplay.jsonl
 - samples: 260
 - duplicate_removed: 1031
@@ -38,3 +38,12 @@
 - ok: 172
 - no_tool_call: 40
 - truncated_output: 6
+
+## Model Call Metrics
+- calls: 1159
+- average_elapsed_seconds: 32.395
+- average_prompt_chars: 0
+- average_output_chars: 0
+- average_source_chars: 0
+- average_output_chars_per_second: 0
+- average_seconds_per_1k_output_chars: 0
