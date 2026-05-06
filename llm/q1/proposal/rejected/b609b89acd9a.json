@@ -1,0 +1,82 @@
+{
+  "created_at": "2026-05-06 18:41:18",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 18:41:19",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "replace_function validation failed: Unsafe generated content blocked: use a specific exception type instead of except Exception",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "b609b89acd9a",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 23333,
+    "elapsed_seconds": 23.333,
+    "max_tokens": 1024,
+    "output_chars": 998,
+    "output_chars_per_second": 42.772,
+    "prompt_chars": 2283,
+    "prompt_hash": "08ba2f75a71c5210a92ecc7a33941c0d559960edda5db0d85fdb11df87adeb66",
+    "seconds_per_1k_output_chars": 23.38,
+    "server_url": "http://127.0.0.1:8765",
+    "source_chars": 760
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"archive_job\", \"content\": \"    def archive_job(self, job_path, status=\\\"done\\\"):\\n        archive_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", status)\\n        os.makedirs(archive_dir, exist_ok=True)\\n        name = os.path.basename(job_path)\\n        base, ext = os.path.splitext(name)\\n        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')\\n        target = os.path.join(archive_dir, f\\\"{base}_{timestamp}{ext}\\\")\\n        counter = 0\\n        while os.path.exists(target):\\n            counter += 1\\n            target = os.path.join(archive_dir, f\\\"{base}_{timestamp}_{counter}{ext}\\\")\\n        try:\\n            os.replace(job_path, target)\\n        except FileExistsError:\\n            # Fallback to using shutil.move in case of race condition\\n            shutil.move(job_path, target)\\n        except Exception as e:\\n            logging.error(f\\\"Failed to archive job {job_path}: {e}\\n\"}}",
+  "moved_at": "2026-05-06 18:41:19",
+  "nonce": "745a9f8e",
+  "problem": "완료/실패 job 이동 시 이름 충돌과 재시도 판단을 더 안정적으로 처리하도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def archive_job(self, job_path, status=\\\"done\\\"):\\n        archive_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", status)\\n        os.makedirs(archive_dir, exist_ok=True)\\n        name = os.path.basename(job_path)\\n        base, ext = os.path.splitext(name)\\n        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')\\n        target = os.path.join(archive_dir, f\\\"{base}_{timestamp}{ext}\\\")\\n        counter = 0\\n        while os.path.exists(target):\\n            counter += 1\\n            target = os.path.join(archive_dir, f\\\"{base}_{timestamp}_{counter}{ext}\\\")\\n        try:\\n            os.replace(job_path, target)\\n        except FileExistsError:\\n            # Fallback to using shutil.move in case of race condition\\n            shutil.move(job_path, target)\\n        except Exception as e:\\n            logging.error(f\\\"Failed to archive job {job_path}: {e}\\n\", \"func_name\": \"archive_job\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "static_reject: replace_function validation failed: Unsafe generated content blocked: use a specific exception type instead of except Exception",
+    "rejected_at": "2026-05-06 18:41:19"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/q1.py:archive_job"
+}

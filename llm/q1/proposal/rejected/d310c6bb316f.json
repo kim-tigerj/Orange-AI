@@ -1,0 +1,82 @@
+{
+  "created_at": "2026-05-06 19:09:26",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 19:09:26",
+    "ok": false,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "replace_function validation failed: Unsafe generated content blocked: use a specific exception type instead of except Exception",
+        "name": "static_reject",
+        "ok": false
+      }
+    ]
+  },
+  "id": "d310c6bb316f",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 22766,
+    "elapsed_seconds": 22.766,
+    "max_tokens": 1024,
+    "output_chars": 1065,
+    "output_chars_per_second": 46.78,
+    "prompt_chars": 2294,
+    "prompt_hash": "8d98f0d6f7b36c7668aa50d4c14dca6379bdf3d39d4df9eee769aa24fc122b47",
+    "seconds_per_1k_output_chars": 21.377,
+    "server_url": "http://127.0.0.1:8765",
+    "source_chars": 772
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/core/handlers.py\", \"func_name\": \"list_functions\", \"content\": \"    def list_functions(self, call):\\n        try:\\n            with open(self._resolve_path(call.get('path')), 'r', encoding='utf-8') as f:\\n                source = f.read()\\n            functions = list_functions_in_source(source)\\n            if not functions:\\n                return \\\"<tool_result name='list_functions' status='success'>No functions found.</tool_result>\\\"\\n            return f\\\"<tool_result name='list_functions' status='success'>\\\\n{chr(10).join(functions)}\\\\n</tool_result>\\\"\\n        except FileNotFoundError:\\n            return \\\"<tool_result name='list_functions' status='error'>File not found.</tool_result>\\\"\\n        except IOError as e:\\n            return f\\\"<tool_result name='list_functions' status='error'>Failed to read file: {e.strerror}</tool_result>\\\"\\n        except Exception as e:\\n            return f\\\"<tool_result name='list_functions' status='error'>An error occurred: {str(e)}</tool_result>\\\"\"}}",
+  "moved_at": "2026-05-06 19:09:26",
+  "nonce": "17ce76c1",
+  "problem": "함수 목록 도구가 읽기 오류와 빈 결과를 더 명확히 전달하도록 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def list_functions(self, call):\\n        try:\\n            with open(self._resolve_path(call.get('path')), 'r', encoding='utf-8') as f:\\n                source = f.read()\\n            functions = list_functions_in_source(source)\\n            if not functions:\\n                return \\\"<tool_result name='list_functions' status='success'>No functions found.</tool_result>\\\"\\n            return f\\\"<tool_result name='list_functions' status='success'>\\\\n{chr(10).join(functions)}\\\\n</tool_result>\\\"\\n        except FileNotFoundError:\\n            return \\\"<tool_result name='list_functions' status='error'>File not found.</tool_result>\\\"\\n        except IOError as e:\\n            return f\\\"<tool_result name='list_functions' status='error'>Failed to read file: {e.strerror}</tool_result>\\\"\\n        except Exception as e:\\n            return f\\\"<tool_result name='list_functions' status='error'>An error occurred: {str(e)}</tool_result>\\\"\", \"func_name\": \"list_functions\", \"path\": \"llm/q1/core/handlers.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "rejection": {
+    "reason": "static_reject: replace_function validation failed: Unsafe generated content blocked: use a specific exception type instead of except Exception",
+    "rejected_at": "2026-05-06 19:09:26"
+  },
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "rejected",
+  "target": "llm/q1/core/handlers.py:list_functions"
+}

@@ -2885,14 +2885,9 @@ class Q1Engine:
             summarizer = pipeline('summarization')
             main_goal = summarizer(main_goal, max_length=50, min_length=25, do_sample=False)[0]['summary_text']
         # 추가로 프롬프트 품질 향상을 위해 간결성 및 명확성 검사
-        if len(main_goal) > 50:
-            main_goal = ' '.join(main_goal.split()[:10])  # 첫 10단어만 사용
-        # 명확성 및 간결성 재검사
         if len(main_goal.split()) > 10:
             main_goal = ' '.join(main_goal.split()[:10])
-        # 최종적으로 문장의 첫 문장만 사용하여 명확성과 간결성 유지
-        final_goal = main_goal.split('. ')[0].strip() if '. ' in main_goal else main_goal.strip()
-        return final_goal if final_goal else None
+        return main_goal.strip() if main_goal else None
     def archive_job(self, job_path, status="done"):
         archive_dir = os.path.join(PROJECT_ROOT, "llm", "q1", "job", status)
         os.makedirs(archive_dir, exist_ok=True)
@@ -2906,15 +2901,9 @@ class Q1Engine:
             target = os.path.join(archive_dir, f"{base}_{timestamp}_{counter}{ext}")
         try:
             os.replace(job_path, target)
-        except FileExistsError:
-            # In case of a race condition, retry with a new timestamp
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            target = os.path.join(archive_dir, f"{base}_{timestamp}{ext}")
-            counter = 0
-            while os.path.exists(target):
-                counter += 1
-                target = os.path.join(archive_dir, f"{base}_{timestamp}_{counter}{ext}")
-            os.replace(job_path, target)
+        except OSError:
+            # Fallback to using shutil.move in case of race condition or other OS errors
+            shutil.move(job_path, target)
     def write_skip_report(self, job_path, reason):
         report_dir = os.path.join(PROJECT_ROOT, "llm", "q1", "job", "report")
         os.makedirs(report_dir, exist_ok=True)

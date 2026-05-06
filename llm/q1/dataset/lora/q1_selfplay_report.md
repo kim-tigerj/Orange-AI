@@ -1,25 +1,25 @@
 # q1 LoRA Dataset Report
 
-- generated_at: 2026-05-06 17:04:46
+- generated_at: 2026-05-06 19:12:34
 - output: llm/q1/dataset/lora/q1_selfplay.jsonl
-- samples: 260
-- duplicate_removed: 1031
-- average_quality_score: 0.613
+- samples: 275
+- duplicate_removed: 1230
+- average_quality_score: 0.617
 
 ## Labels
-- accepted_read_only: 45
-- positive: 84
-- rejected: 131
+- accepted_read_only: 46
+- positive: 92
+- rejected: 137
 
 ## Sources
-- self-play-model-v1: 217
+- self-play-model-v1: 232
 - self-play: 37
 - proposal-autopilot-safe-write: 5
 - self-play-model-skip-v1: 1
 
 ## Rejection Reasons
-- tool_parse: missing or malformed tool_call: 47
-- static_reject: replace_function validation failed: Unsafe generated content blocked: use a specific exception type instead of except Exception: 21
+- tool_parse: missing or malformed tool_call: 49
+- static_reject: replace_function validation failed: Unsafe generated content blocked: use a specific exception type instead of except Exception: 25
 - <tool_result name='replace_function' status='error'>Unsafe generated content blocked: use a specific exception type instead of except Exception</tool_result>: 13
 - validation failed after apply; rollback completed: 10
 - static_reject: replace_function validation failed: Replacement content must contain exactly one function definition: 8
@@ -35,15 +35,15 @@
 - static_reject: replace_function validation failed: Replacement function is not valid Python: EOL while scanning string literal at line 49: 1
 
 ## Model Parse Reasons
-- ok: 172
-- no_tool_call: 40
+- ok: 185
+- no_tool_call: 42
 - truncated_output: 6
 
 ## Model Call Metrics
-- calls: 1159
-- average_elapsed_seconds: 32.395
-- average_prompt_chars: 0
-- average_output_chars: 0
-- average_source_chars: 0
-- average_output_chars_per_second: 0
-- average_seconds_per_1k_output_chars: 0
+- calls: 1367
+- average_elapsed_seconds: 32.042
+- average_prompt_chars: 3092.966
+- average_output_chars: 1378.654
+- average_source_chars: 1524.909
+- average_output_chars_per_second: 37.601
+- average_seconds_per_1k_output_chars: 84.315

@@ -283,8 +283,8 @@ class ToolHandler:
             return f"<tool_result name='list_functions' status='success'>\n{chr(10).join(functions)}\n</tool_result>"
         except FileNotFoundError:
             return "<tool_result name='list_functions' status='error'>File not found.</tool_result>"
-        except IOError:
-            return "<tool_result name='list_functions' status='error'>Failed to read file.</tool_result>"
+        except IOError as e:
+            return f"<tool_result name='list_functions' status='error'>Failed to read file: {e.strerror}</tool_result>"
     def read_function(self, call):
         try:
             with open(self._resolve_path(call.get('path')), 'r', encoding='utf-8') as f:

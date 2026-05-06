@@ -1,0 +1,84 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 17:19:41",
+    "changed_files": [],
+    "note": "DONE_NO_CHANGE proposal accepted without file writes",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 17:19:06",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 17:19:41",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "39140d815e58",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 3843,
+    "elapsed_seconds": 3.843,
+    "max_tokens": 1024,
+    "output_chars": 14,
+    "output_chars_per_second": 3.643,
+    "prompt_chars": 2037,
+    "prompt_hash": "1fa75c3f7aae383527f334237f958b6d752b83228f9727bfdaf0e68d0ef60369",
+    "seconds_per_1k_output_chars": 274.5,
+    "server_url": "http://127.0.0.1:8765",
+    "source_chars": 513
+  },
+  "model_output_raw": "DONE_NO_CHANGE",
+  "moved_at": "2026-05-06 17:19:41",
+  "nonce": "2b34b16f",
+  "problem": "job 문서에서 대상 함수를 더 안정적으로 추출해 잘못된 skip을 줄이도록 개선한다.",
+  "proposed_tool_call": "DONE_NO_CHANGE",
+  "rationale": "model self-play proposal parsed as no_change (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:extract_target_function"
+}

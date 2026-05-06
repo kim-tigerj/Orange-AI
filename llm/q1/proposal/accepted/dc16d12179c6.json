@@ -1,0 +1,84 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 18:53:21",
+    "changed_files": [],
+    "note": "DONE_NO_CHANGE proposal accepted without file writes",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 18:53:19",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 18:53:21",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "dc16d12179c6",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 3399,
+    "elapsed_seconds": 3.399,
+    "max_tokens": 1024,
+    "output_chars": 14,
+    "output_chars_per_second": 4.119,
+    "prompt_chars": 1891,
+    "prompt_hash": "af0d9d998cc1516f97761dbce2cd82a23300dcff85ba1e9f3c9aa7484dded20c",
+    "seconds_per_1k_output_chars": 242.786,
+    "server_url": "http://127.0.0.1:8765",
+    "source_chars": 394
+  },
+  "model_output_raw": "DONE_NO_CHANGE",
+  "moved_at": "2026-05-06 18:53:21",
+  "nonce": "4d7b1a2a",
+  "problem": "한 번의 자율 반복에서 시간 낭비와 불필요한 모델 호출을 줄이도록 개선한다.",
+  "proposed_tool_call": "DONE_NO_CHANGE",
+  "rationale": "model self-play proposal parsed as no_change (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:cycle_once"
+}

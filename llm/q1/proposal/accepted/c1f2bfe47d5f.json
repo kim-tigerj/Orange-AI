@@ -1,0 +1,130 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 17:58:00",
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "tool_result": "<tool_result name='replace_function' status='success'>교체 완료</tool_result>",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 17:57:57",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 17:57:58",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "allowed paths ok",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "static checks ok",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "c1f2bfe47d5f",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 61130,
+    "elapsed_seconds": 61.13,
+    "max_tokens": 1024,
+    "output_chars": 3126,
+    "output_chars_per_second": 51.137,
+    "prompt_chars": 4510,
+    "prompt_hash": "d6ab129387c5a97ba1ac0324097aa5e3a264dbede87687ddbb0ed805033cc342",
+    "seconds_per_1k_output_chars": 19.555,
+    "server_url": "http://127.0.0.1:8765",
+    "source_chars": 2874
+  },
+  "model_output_raw": "{\"name\": \"replace_function\", \"arguments\": {\"path\": \"llm/q1/q1.py\", \"func_name\": \"print_latest_failure\", \"content\": \"    def print_latest_failure(self):\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        if not os.path.exists(report_dir):\\n            console.print(\\\"[bold red]report directory missing[/bold red]\\\")\\n            raise SystemExit(1)\\n        report_files = [\\n            os.path.join(report_dir, name)\\n            for name in os.listdir(report_dir)\\n            if name.endswith(\\\".md\\\") and name != \\\"latest_summary.md\\\"\\n        ]\\n        report_files.sort(key=os.path.getmtime, reverse=True)\\n        latest_by_target = self.latest_report_by_target()\\n        for path in report_files:\\n            with open(path, \\\"r\\\", encoding=\\\"utf-8\\\", errors=\\\"replace\\\") as f:\\n                text = f.read()\\n            job = self.extract_report_field(text, \\\"job\\\")\\n            if job.startswith(\\\"function:\\\"):\\n                target = job.replace(\\\"function:\\\", \\\"\\\", 1)\\n                latest = latest_by_target.get(target)\\n                if (\\n                    latest\\n                    and os.path.abspath(latest.get(\\\"path\\\", \\\"\\\")) != os.path.abspath(path)\\n                    and latest.get(\\\"verdict\\\") in {\\\"DONE\\\", \\\"NO_CHANGE\\\"}\\n                ):\\n                    continue\\n            verdict = self.extract_report_field(text, \\\"verdict\\\")\\n            tool_error_count = self.extract_report_field(text, \\\"tool_error_count\\\")\\n            errors = []\\n            if tool_error_count not in {\\\"0\\\", \\\"(missing)\\\"}:\\n                errors = re.findall(r\\\"^<tool_result name='([^']+)' status='error'>(.*?)</tool_result>\\\", text, re.MULTILINE | re.DOTALL)\\n            validation_failed = re.search(r\\\"^## FAIL$\\\", text, re.MULTILINE) is not None\\n            has_failure = (\\n                bool(errors)\\n                or validation_failed\\n                or verdict in {\\\"CONTINUE\\\", \\\"FAIL\\\"}\\n            )\\n            if not has_failure:\\n                continue\\n            console.print(\\\"[bold]q1 latest failure summary[/bold]\\\")\\n            console.print(f\\\"file: {os.path.relpath(path, PROJECT_ROOT)}\\\")\\n            console.print(f\\\"job: {job}\\\")\\n            console.print(f\\\"timestamp: {self.extract_report_field(text, 'timestamp')}\\\")\\n            console.print(f\\\"verdict: {verdict}\\\")\\n            if errors:\\n                console.print(f\\\"tool_errors: {len(errors)}\\\")\\n                for name, error in errors[:3]:\\n                    console.print(f\\\"  - {name}: {error.strip()[:100]}{'...' if len(error.strip()) > 100 else ''}\\\")\\n            if validation_failed:\\n                console.print(\\\"validation_failure: present\\\")\\n            failure_reason = self.extract_report_field(text, \\\"failure_reason\\\")\\n            if failure_reason:\\n                console.print(f\\\"failure_reason: {failure_reason.strip()[:100]}{'...' if len(failure_reason.strip()) > 100 else ''}\\\")\\n            return\\n        console.print(\\\"[bold]q1 latest failure summary[/bold]\\\")\\n        console.print(\\\"none\\\")\\n\"}}",
+  "moved_at": "2026-05-06 17:58:00",
+  "nonce": "75e1bafe",
+  "problem": "최신 실패 원인을 긴 보고서 없이 빠르게 판단할 수 있도록 실패 요약 출력을 개선한다.",
+  "proposed_tool_call": "<tool_call>\n{\"arguments\": {\"content\": \"    def print_latest_failure(self):\\n        report_dir = os.path.join(PROJECT_ROOT, \\\"llm\\\", \\\"q1\\\", \\\"job\\\", \\\"report\\\")\\n        if not os.path.exists(report_dir):\\n            console.print(\\\"[bold red]report directory missing[/bold red]\\\")\\n            raise SystemExit(1)\\n        report_files = [\\n            os.path.join(report_dir, name)\\n            for name in os.listdir(report_dir)\\n            if name.endswith(\\\".md\\\") and name != \\\"latest_summary.md\\\"\\n        ]\\n        report_files.sort(key=os.path.getmtime, reverse=True)\\n        latest_by_target = self.latest_report_by_target()\\n        for path in report_files:\\n            with open(path, \\\"r\\\", encoding=\\\"utf-8\\\", errors=\\\"replace\\\") as f:\\n                text = f.read()\\n            job = self.extract_report_field(text, \\\"job\\\")\\n            if job.startswith(\\\"function:\\\"):\\n                target = job.replace(\\\"function:\\\", \\\"\\\", 1)\\n                latest = latest_by_target.get(target)\\n                if (\\n                    latest\\n                    and os.path.abspath(latest.get(\\\"path\\\", \\\"\\\")) != os.path.abspath(path)\\n                    and latest.get(\\\"verdict\\\") in {\\\"DONE\\\", \\\"NO_CHANGE\\\"}\\n                ):\\n                    continue\\n            verdict = self.extract_report_field(text, \\\"verdict\\\")\\n            tool_error_count = self.extract_report_field(text, \\\"tool_error_count\\\")\\n            errors = []\\n            if tool_error_count not in {\\\"0\\\", \\\"(missing)\\\"}:\\n                errors = re.findall(r\\\"^<tool_result name='([^']+)' status='error'>(.*?)</tool_result>\\\", text, re.MULTILINE | re.DOTALL)\\n            validation_failed = re.search(r\\\"^## FAIL$\\\", text, re.MULTILINE) is not None\\n            has_failure = (\\n                bool(errors)\\n                or validation_failed\\n                or verdict in {\\\"CONTINUE\\\", \\\"FAIL\\\"}\\n            )\\n            if not has_failure:\\n                continue\\n            console.print(\\\"[bold]q1 latest failure summary[/bold]\\\")\\n            console.print(f\\\"file: {os.path.relpath(path, PROJECT_ROOT)}\\\")\\n            console.print(f\\\"job: {job}\\\")\\n            console.print(f\\\"timestamp: {self.extract_report_field(text, 'timestamp')}\\\")\\n            console.print(f\\\"verdict: {verdict}\\\")\\n            if errors:\\n                console.print(f\\\"tool_errors: {len(errors)}\\\")\\n                for name, error in errors[:3]:\\n                    console.print(f\\\"  - {name}: {error.strip()[:100]}{'...' if len(error.strip()) > 100 else ''}\\\")\\n            if validation_failed:\\n                console.print(\\\"validation_failure: present\\\")\\n            failure_reason = self.extract_report_field(text, \\\"failure_reason\\\")\\n            if failure_reason:\\n                console.print(f\\\"failure_reason: {failure_reason.strip()[:100]}{'...' if len(failure_reason.strip()) > 100 else ''}\\\")\\n            return\\n        console.print(\\\"[bold]q1 latest failure summary[/bold]\\\")\\n        console.print(\\\"none\\\")\\n\", \"func_name\": \"print_latest_failure\", \"path\": \"llm/q1/q1.py\"}, \"name\": \"replace_function\"}\n</tool_call>",
+  "rationale": "model self-play proposal parsed as write (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:print_latest_failure",
+  "validation_report": {
+    "changed_files": [
+      "llm/q1/q1.py"
+    ],
+    "job": "proposal:c1f2bfe47d5f",
+    "ok": true,
+    "results": [
+      {
+        "command": "./venv/bin/python -m py_compile llm/q1/q1.py llm/q1/core/handlers.py llm/q1/core/analyzer.py llm/q1/context/project_context.py llm/q1/utils/ast_utils.py llm/q1/utils/logger.py llm/q1/q1_server.py",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \nOUTPUT_LENGTH: 0\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "cd llm/q1 && ../../venv/bin/python -m unittest discover -s tests",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 proposal autopilot\ncycle 1/1\nq1 proposal autopilot summary\ncycles: 1\napplied_or_accepted: 0\nfailed_or_rejected: 0\nkind_counts: {}\nself_play_model_one: id=skip-test target=llm/q1/q1.py:compact_logs kind=skipped \nsource_chars=6001\n[2026-05-06 17:57:59] JOB 0bcda1b39c68 queued request_id=None queue_depth=1\n[2026-05-06 17:57:59] JOB 0bcda1b39c68 running\n[2026-05-06 17:57:59] JOB 0bcda1b39c68 done elapsed_seconds=0.05\n[2026-05-06 17:57:59] JOB 7b5a30e09e68 cache hit request_id=req1\n[2026-05-06 17:57:59] REQUEST #req1 stream done job_id=7b5a30e09e68 cached=True elapsed_seconds=0.0 counts total=1 generate=1 health=0 jobs=0 errors=0 inference completed=1 cached=1 avg_seconds=0.05 total_seconds=0.05\n[2026-05-06 17:57:59] JOB 0bec9c067ce9 queued request_id=r1 queue_depth=1\n[2026-05-06 17:57:59] JOB 0bec9c067ce9 running\n[2026-05-06 17:57:59] JOB 0bec9c067ce9 joined duplicate request_id=r2\n[2026-05-06 17:57:59] JOB 0bec9c067ce9 done elapsed_seconds=0.04\n[2026-05-06 17:57:59] JOB 8da70a07b3b5 qu\nSTDERR: ................................................\n----------------------------------------------------------------------\nRan 48 tests in 0.697s\n\nOK\n\nOUTPUT_LENGTH: 1584\nERROR_LENGTH: 147\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --self-check",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: project_root: /Users/tigerj/Work/OrangeLabs/Orange/Orange-AI -> OK\npersona: loaded -> OK\nread_file: llm/q1/q1.py -> OK\nlist_directory: llm/q1/core -> OK\nallowed_tool_guard: disallowed read_function -> OK\n\nSTDERR: \nOUTPUT_LENGTH: 204\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "./venv/bin/python llm/q1/q1.py --tool-self-test",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: q1 tool self-test\nparse_tool_calls_roundtrip: OK\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='success'>교체 완료</tool_result>\n<tool_result name='replace_function' status='error'>Replacement function name \nmismatch: expected target, got renamed</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction decorators</tool_result>\nreplace_function_signature_guard: OK\nreplace_function_decorator_guard: OK\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction return flow</tool_result>\n<tool_result name='replace_function' status='error'>Replacement must preserve \nfunction yield flow</tool_result>\nreplace_function_return_guard: OK\nreplace_function_yield_guard: OK\n<tool_result name='replace_function' status='error'>Post-splice verification \nfailed: function topology changed</tool_result>\nreplace_function_topology_guard: OK\n<tool_result name='execute_b\nSTDERR: \nOUTPUT_LENGTH: 1319\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "Q1_SKIP_RESPONSE_LOG=1 ./venv/bin/python llm/q1/q1.py --task \"llm/q1/core 목록 확인해라\"",
+        "ok": true,
+        "result": "<tool_result name='execute_bash' status='success'>\nRETURN_CODE: 0\nSTDOUT: 직접 실행 결과:\n<tool_result name='list_directory' status='success'>\n[{\"name\": \"context_manager.py\", \"size\": 0, \"type\": \"file\"}, {\"name\": \n\"analyzer.py\", \"size\": 674, \"type\": \"file\"}, {\"name\": \"session_manager.py\", \n\"size\": 0, \"type\": \"file\"}, {\"name\": \"handlers.py\", \"size\": 23449, \"type\": \n\"file\"}]\n</tool_result>\n\nSTDERR: \nOUTPUT_LENGTH: 310\nERROR_LENGTH: 0\n</tool_result>"
+      },
+      {
+        "command": "/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/venv/bin/python -c importlib.import_module q1",
+        "ok": true,
+        "result": "<tool_result name='import_check' status='success'>\nMODULE: q1\nRETURN_CODE: 0\nSTDOUT: \nSTDERR: \n</tool_result>"
+      }
+    ],
+    "timestamp": "2026-05-06 17:58:00",
+    "tool_errors": [],
+    "tool_results": [
+      "<tool_result name='replace_function' status='success'>교체 완료</tool_result>"
+    ]
+  }
+}

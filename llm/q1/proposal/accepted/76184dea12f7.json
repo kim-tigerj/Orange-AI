@@ -1,0 +1,84 @@
+{
+  "application": {
+    "applied_at": "2026-05-06 17:43:53",
+    "changed_files": [],
+    "note": "DONE_NO_CHANGE proposal accepted without file writes",
+    "validation_ok": true
+  },
+  "created_at": "2026-05-06 17:43:26",
+  "expected_validation": "./q1 --validate",
+  "gate": {
+    "allowed_paths": [
+      "llm/q1/q1.py",
+      "llm/q1/core/handlers.py",
+      "llm/q1/core/analyzer.py",
+      "llm/q1/context/project_context.py",
+      "llm/q1/utils/ast_utils.py",
+      "llm/q1/utils/logger.py",
+      "llm/q1/q1_server.py",
+      "llm/q1/persona/PROMPT.md",
+      "llm/q1/dataset/lora/WRITE_SAMPLES.md"
+    ],
+    "apply_automatically": false,
+    "reject_if": [
+      "outside_allowed_paths",
+      "missing_tool_call",
+      "multiple_write_tools",
+      "validation_failure",
+      "server_port_policy_violation"
+    ],
+    "requires_oh_supervisor": true
+  },
+  "gate_result": {
+    "checked_at": "2026-05-06 17:43:53",
+    "ok": true,
+    "results": [
+      {
+        "message": "schema ok",
+        "name": "schema",
+        "ok": true
+      },
+      {
+        "message": "tool parse ok",
+        "name": "tool_parse",
+        "ok": true
+      },
+      {
+        "message": "no write path",
+        "name": "allowed_paths",
+        "ok": true
+      },
+      {
+        "message": "no write content",
+        "name": "static_reject",
+        "ok": true
+      }
+    ]
+  },
+  "id": "76184dea12f7",
+  "model_call_metadata": {
+    "cache_hit": false,
+    "elapsed_ms": 5488,
+    "elapsed_seconds": 5.488,
+    "max_tokens": 1024,
+    "output_chars": 14,
+    "output_chars_per_second": 2.551,
+    "prompt_chars": 3636,
+    "prompt_hash": "510502d34a39f9e670c404e90804c362ae9a99716543c46bd08bcd8699a87599",
+    "seconds_per_1k_output_chars": 392.0,
+    "server_url": "http://127.0.0.1:8765",
+    "source_chars": 2058
+  },
+  "model_output_raw": "DONE_NO_CHANGE",
+  "moved_at": "2026-05-06 17:43:53",
+  "nonce": "f360db16",
+  "problem": "실행 불가능한 job 정리가 반복 루프 전에 더 명확한 보고서를 남기도록 개선한다.",
+  "proposed_tool_call": "DONE_NO_CHANGE",
+  "rationale": "model self-play proposal parsed as no_change (ok)",
+  "risk": "low",
+  "role": "worker",
+  "schema_version": 1,
+  "source": "self-play-model-v1",
+  "status": "accepted",
+  "target": "llm/q1/q1.py:archive_skipped"
+}
