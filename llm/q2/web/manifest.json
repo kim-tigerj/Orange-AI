@@ -1,0 +1,21 @@
+{
+  "name": "Orange q2 Natural Query Console",
+  "short_name": "Orange q2",
+  "description": "Orange q2 natural language Mongo query console",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#101112",
+  "theme_color": "#f97316",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/web/q2-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f97316">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Orange q2">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>q2 Natural Query Console</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/web/q2-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/web/q2-icon.svg">
+  <link rel="stylesheet" href="/web/q2.css?v=16">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <h1>q2 Natural Query Console <span id="appVersion" class="app-version">v0.0.1.1</span> <span id="modelLibrary" class="app-version">library checking...</span></h1>
+        <div id="status" class="service-status">checking...</div>
+      </div>
+      <div class="top-actions">
+        <button id="refreshBtn">새로고침</button>
+        <button id="autotestBtn">자동 테스트</button>
+        <button id="localCompareBtn">로컬 LM</button>
+        <button id="candidatesBtn">개선 후보</button>
+        <button id="logsBtn">최근 로그</button>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <div class="left-rail">
+        <article class="panel cli-panel">
+          <div class="section-title">
+            <h2 id="leftPanelTitle">Natural Language CLI</h2>
+            <div id="meta"></div>
+          </div>
+          <div class="cli-terminal">
+            <div class="cli-input-row">
+              <span class="cli-prompt">q2&gt;</span>
+              <textarea id="question" rows="1" spellcheck="false" placeholder="최근 자연어 질의를 불러오는 중입니다."></textarea>
+            </div>
+          </div>
+          <div id="cliResult" class="cli-result-line">대기 중</div>
+          <div class="actions">
+            <button id="queryBtn">실행</button>
+            <button id="planBtn">Plan</button>
+            <button id="cacheBtn">Cache</button>
+          </div>
+          <div class="cli-status-grid">
+            <div><span>collection</span><strong id="activeCollection">-</strong></div>
+            <div><span>rows</span><strong id="activeRows">-</strong></div>
+            <div><span>quality</span><strong id="activeQuality">-</strong></div>
+            <div><span>time</span><strong id="activeTime">-</strong></div>
+          </div>
+          <pre id="errors"></pre>
+          <details>
+            <summary>query_plan</summary>
+            <pre id="plan"></pre>
+          </details>
+          <details>
+            <summary>aggregation</summary>
+            <pre id="aggregation"></pre>
+          </details>
+        </article>
+
+        <article class="panel chart-panel">
+          <div class="section-title">
+            <h2 id="chartTitle">최근 질의 분포</h2>
+            <div id="chartMeta"></div>
+          </div>
+          <div id="chart" class="chart-empty">최근 질의 로그를 불러오는 중입니다.</div>
+        </article>
+      </div>
+
+      <div class="right-rail">
+        <section class="panel data-panel">
+          <div class="section-title">
+            <h2 id="dataTitle">최근 자연어 질의</h2>
+            <div id="dataMeta"></div>
+          </div>
+          <div id="dataGrid" class="table-empty">데이터를 불러오는 중입니다.</div>
+        </section>
+
+        <section class="panel secondary-panel">
+          <div class="section-title">
+            <h2 id="secondaryTitle">상세 목록</h2>
+            <div id="secondaryMeta"></div>
+          </div>
+          <div id="secondaryGrid" class="table-empty">표시할 상세 목록이 없습니다.</div>
+        </section>
+      </div>
+    </section>
+
+    <section id="candidatePanel" class="panel side-panel hidden">
+      <div class="section-title">
+        <h2>개선 후보</h2>
+        <div id="candidateMeta"></div>
+      </div>
+      <div class="improvement-compose">
+        <textarea id="improvementInstruction" rows="3" spellcheck="false" placeholder="개선 내용을 입력"></textarea>
+        <button id="improvementSubmitBtn">개선 요청 등록</button>
+      </div>
+      <div id="improvementRequests" class="stack-empty">개선 요청을 불러오지 않았습니다.</div>
+      <div id="candidates" class="stack-empty">아직 불러오지 않았습니다.</div>
+    </section>
+
+    <section id="logPanel" class="panel side-panel hidden">
+      <div class="section-title">
+        <h2>최근 로그</h2>
+        <div id="logMeta"></div>
+      </div>
+      <div id="logs" class="stack-empty">아직 불러오지 않았습니다.</div>
+    </section>
+  </main>
+  <script src="/web/q2.js?v=16"></script>
+</body>
+</html>

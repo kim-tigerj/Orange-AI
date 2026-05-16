@@ -1,0 +1,199 @@
+{
+  "schema_version": "system-sprocess-v2",
+  "collections": {
+    "system": {
+      "description": "회사 전체 또는 노드군의 성능 집계 지표",
+      "time_field": "time",
+      "fields": [
+        "time",
+        "CPU.open", "CPU.high", "CPU.low", "CPU.close", "CPU.rate",
+        "Memory.open", "Memory.high", "Memory.low", "Memory.close", "Memory.rate", "Memory.total", "Memory.value",
+        "IO.open", "IO.high", "IO.low", "IO.close", "IO.value",
+        "Handle.open", "Handle.high", "Handle.low", "Handle.close", "Handle.value",
+        "Process.crash", "Process.crash2", "Process.running", "Process.start", "Process.stop",
+        "Stat.detect", "Stat.detect2", "Stat.install", "Stat.sprocess", "Stat.timeline",
+        "health", "h0", "h1", "h2", "h3", "total", "online", "offline"
+      ],
+      "default_metrics": ["CPU.close", "Memory.rate", "IO.close", "Handle.close"]
+    },
+    "sprocess": {
+      "description": "Agent가 수집한 개별 프로세스별 성능 지표",
+      "time_field": "timestamp",
+      "fields": [
+        "time", "timestamp", "hour", "lasttime", "id", "ticket",
+        "ProcName", "ProcPath", "Command", "PProcName", "PProcPath",
+        "CPU", "Memory", "IO", "Handle", "CounterCount", "pscore",
+        "Crash", "Crashed", "Kill", "Killed", "Detect",
+        "Running", "Start", "Stop",
+        "CompanyName", "ProductName", "ProductVersion",
+        "FileDescription", "FileName", "FilePath", "FileVersion",
+        "Signer", "Codesign", "IsSystem"
+      ],
+      "default_metrics": ["pscore", "CPU", "Memory", "IO", "Handle"]
+    },
+    "node": {
+      "description": "개별 노드의 현재 상태, 사용자, Agent, 시스템 요약 정보",
+      "time_field": "",
+      "fields": [
+        "id", "status", "health", "ip", "ip2", "ticket", "guid", "count", "detect", "vm",
+        "created", "updated", "timestamp",
+        "User.id", "User.key", "User.name", "User.user.name", "User.user.role",
+        "System.ComputerName", "System.UserName", "System.DomainName",
+        "System.name", "System.version", "System.type", "System.Manufacturer",
+        "System.Model", "System.SerialNumber", "System.ip", "System.VM",
+        "System.CPU.rate", "System.Memory.value", "System.Memory.total", "System.Memory.rate",
+        "System.IO.value", "System.Handle.value", "System.boot", "System.bootId", "System.crash",
+        "Agent.version", "Agent.revision", "Agent.build", "Agent.path", "Agent.start"
+      ],
+      "default_metrics": ["System.Memory.rate", "System.CPU.rate", "System.IO.value", "System.Handle.value"]
+    },
+    "nodeinfo": {
+      "description": "Agent가 수집한 개별 노드의 WMI/설치/네트워크/백신/Agent 상태 정보",
+      "time_field": "",
+      "fields": [
+        "id", "name", "label", "command", "from", "count", "firsttime", "lasttime",
+        "data.DeviceId", "data.DeviceGuid", "data.DeviceTicket", "data.build", "data.data",
+        "data.version", "data.revision", "data.path", "data.installTime", "data.label",
+        "data.CSName", "data.DNSHostName", "data.Caption", "data.BuildNumber", "data.Version",
+        "data.OSArchitecture", "data.UBR", "data.InstallDate", "data.LastBootUpTime", "data.LocalDateTime",
+        "data.Manufacturer", "data.Model", "data.BIOS.Manufacturer", "data.BIOS.Name", "data.BIOS.ReleaseDate",
+        "data.BaseBoard.Manufacturer", "data.BaseBoard.Product", "data.BaseBoard.SerialNumber", "data.BaseBoard.Status",
+        "data.SystemType", "data.PCSystemType", "data.TotalPhysicalMemory", "data.Name", "data.VideoProcessor",
+        "data.InstalledDisplayDrivers", "data.NumberOfCores",
+        "data.NumberOfLogicalProcessors", "data.NumberOfEnabledCore", "data.MaxClockSpeed",
+        "data.CurrentClockSpeed", "data.LoadPercentage",
+        "data.Capacity", "data.BankLabel", "data.DeviceLocator", "data.Speed", "data.SerialNumber", "data.PartNumber",
+        "data.Size", "data.FreeSpace", "data.SizeGB", "data.FreeSpaceGB", "data.FileSystem", "data.DriveType", "data.VolumeName",
+        "data.HotFixID", "data.InstalledOn", "data.InstalledBy", "data.Description",
+        "data.DriverName", "data.PortName", "data.Default",
+        "data.DisplayName", "data.DisplayVersion", "data.Publisher", "data.InstallLocation",
+        "data.displayName", "data.Owner", "data.Signature", "data.Status",
+        "data.name", "data.version", "data.publisher", "data.installLocation", "data.installKey", "data.installedTime",
+        "data.Path", "data.installSource", "data.uninstallString",
+        "data.ip", "data.mac", "data.gateway", "data.subnet", "data.dhcp", "data.best", "data.type", "data.index",
+        "data.NetConnectionID", "data.NetConnectionStatus", "data.NetEnabled", "data.MACAddress",
+        "data.AdapterType", "data.ProductName", "data.ProductVersion", "data.FileDescription",
+        "data.FileVersion", "data.Signer", "data.Codesign", "data.IsSystem",
+        "data.FileCountersPath", "data.FileCounters.ProcName", "data.FileCounters.ProcPath",
+        "data.FileCounters.CounterCount", "data.FileCounters.pscore",
+        "data.FileCounters.CPU", "data.FileCounters.Memory", "data.FileCounters.IO", "data.FileCounters.Handle",
+        "data.PathCounters.pscore",
+        "data.PathCounters.CPU", "data.PathCounters.Memory", "data.PathCounters.IO", "data.PathCounters.Handle",
+        "data.TotalCounters.CounterCount", "data.TotalCounters.pscore",
+        "data.TotalCounters.CPU", "data.TotalCounters.Memory", "data.TotalCounters.IO", "data.TotalCounters.Handle",
+        "node.CSName", "node.OSCaption", "node.BuildNumber", "node.UBR", "node.OSArchitecture",
+        "node.CPUName", "node.Cores", "node.LogicalProcessors", "node.MaxClockSpeed",
+        "target.status", "target.ComputerName", "target.UserName", "target.UserRole",
+        "target.ip", "target.Manufacturer", "target.Model"
+      ],
+      "default_metrics": ["count"]
+    },
+    "sprocess_nodeinfo": {
+      "description": "sprocess를 기준으로 nodeinfo의 OS/CPU 정보를 id로 결합한 가상 컬렉션",
+      "time_field": "timestamp",
+      "fields": [
+        "time", "timestamp", "hour", "lasttime", "id", "ticket",
+        "ProcName", "ProcPath", "Command", "PProcName", "PProcPath",
+        "CPU", "Memory", "IO", "Handle", "CounterCount", "pscore",
+        "Crash", "Detect", "Running", "Start", "Stop",
+        "CompanyName", "ProductName", "ProductVersion", "FileDescription",
+        "FileName", "FilePath", "FileVersion", "Signer", "Codesign", "IsSystem",
+        "node.CSName", "node.OSCaption", "node.BuildNumber", "node.UBR", "node.OSArchitecture",
+        "node.CPUName", "node.Cores", "node.LogicalProcessors", "node.MaxClockSpeed",
+        "target.status", "target.ComputerName", "target.UserName", "target.UserRole",
+        "target.ip", "target.Manufacturer", "target.Model"
+      ],
+      "default_metrics": ["pscore", "CPU", "Memory", "IO", "Handle"]
+    },
+    "filelist": {
+      "description": "Agent가 수집한 노드별 파일 생성/설치/실행 흔적과 파일 버전/서명 메타데이터",
+      "time_field": "timestamp",
+      "fields": [
+        "time", "timestamp", "hour", "lasttime", "id", "ticket",
+        "FileName", "FilePath", "InstallPath", "CreateTime", "EventTime", "InstallTime",
+        "FileSize", "MD5", "FastHash", "SimpleHash", "FSUID",
+        "CompanyName", "ProductName", "ProductVersion", "FileDescription", "FileVersion",
+        "Signer", "Codesign", "IsSystem", "ZoneId", "HostUrl", "ReferrerUrl",
+        "PFilePath", "PFastHash", "InstallCount", "count"
+      ],
+      "default_metrics": ["count", "InstallCount", "FileSize"]
+    },
+    "detect": {
+      "description": "Agent가 탐지한 증상 이벤트. 장애/보안/성능 증상 원문과 파일/프로세스/노드 정보를 포함",
+      "time_field": "timestamp",
+      "fields": [
+        "time", "timestamp", "hour", "lasttime", "firsttime", "id", "ticket",
+        "RuleId", "Desc", "Message", "Event", "TypeEventName", "DocType",
+        "Name", "Name2", "Value", "Value2", "FileName", "FilePath",
+        "CompanyName", "ProductName", "ProductVersion", "FileDescription", "FileVersion",
+        "Signer", "CPU", "Memory", "IO", "Handle", "count",
+        "System.ComputerName", "System.ip", "System.name", "System.Manufacturer", "System.Model",
+        "User.name", "User.deptName"
+      ],
+      "default_metrics": ["count"]
+    },
+    "report": {
+      "description": "Agent가 원인 분석해서 만든 리포트 이벤트. 증상, 원인 프로세스/모듈, 상세 설명을 포함",
+      "time_field": "timestamp",
+      "fields": [
+        "time", "timestamp", "hour", "lasttime", "firsttime", "id", "ticket",
+        "RuleId", "Desc", "Message", "Event", "TypeEventName", "DocType",
+        "Name", "Name2", "Value", "Value2", "FileName", "FilePath",
+        "CompanyName", "ProductName", "ProductVersion", "FileDescription", "FileVersion",
+        "Signer", "CPU", "Memory", "IO", "Handle", "count",
+        "System.ComputerName", "System.ip", "System.name", "System.Manufacturer", "System.Model",
+        "User.name", "User.deptName"
+      ],
+      "default_metrics": ["count"]
+    },
+    "timeline": {
+      "description": "노드별 타임라인 이벤트. 실행/네트워크/서명/화이트리스트/CPU/윈도 이벤트 흐름",
+      "time_field": "timestamp",
+      "fields": [
+        "time", "timestamp", "hour", "lasttime", "firsttime", "id", "ticket",
+        "RuleId", "Desc", "Message", "Event", "TypeEventName", "DocType",
+        "Name", "Name2", "Value", "Value2", "FileName", "FilePath",
+        "CompanyName", "ProductName", "ProductVersion", "FileDescription", "FileVersion",
+        "Signer", "CPU", "Memory", "IO", "Handle", "count",
+        "System.ComputerName", "System.ip", "System.name", "System.Manufacturer", "System.Model",
+        "User.name", "User.deptName"
+      ],
+      "default_metrics": ["count"]
+    },
+    "command_template": {
+      "description": "Manager에서 재사용 가능한 1:N 수집/조치 명령 템플릿",
+      "time_field": "",
+      "fields": [
+        "title", "memo", "created", "updated", "retry",
+        "command_data.command", "command_data.query", "command_data.keyword", "command_data.chart",
+        "is_broadcast", "is_dynamic_target", "command_data_hash"
+      ],
+      "default_metrics": ["title"]
+    },
+    "command": {
+      "description": "Manager에서 발행한 실제 1:N 명령과 실행 상태",
+      "time_field": "",
+      "fields": [
+        "title", "memo", "created", "updated", "scheduled_at", "expiration", "status",
+        "command_data.command", "command_data.query", "command_data.keyword", "command_data.chart",
+        "target_group_code", "is_broadcast", "is_dynamic_target",
+        "target_node_count", "executed_count", "success_count", "template_id"
+      ],
+      "default_metrics": ["target_node_count", "executed_count", "success_count"]
+    },
+    "user": {
+      "description": "사용자/임직원 기본 정보와 소속 그룹",
+      "time_field": "",
+      "fields": ["emp_key", "name", "role", "group_code"],
+      "default_metrics": ["emp_key"]
+    },
+    "group": {
+      "description": "조직/그룹 계층 정보",
+      "time_field": "",
+      "fields": ["group_code", "name", "parent_code", "order"],
+      "default_metrics": ["group_code"]
+    }
+  },
+  "derived_group_by": ["weekday", "hour", "date"],
+  "ops": ["sum", "avg", "max", "min", "count", "count_distinct", "avg_by_count"]
+}

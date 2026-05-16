@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.orangelabs.q2.macbook-worker</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/q2_macbook_worker.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/venv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>Q2_PROJECT</key>
+    <string>q2</string>
+    <key>Q2_WORKER_SERVER</key>
+    <string>http://127.0.0.1:3184</string>
+    <key>Q2_WORKER_BATCH_SIZE</key>
+    <string>120</string>
+    <key>Q2_WORKER_PROFILE_INTERVAL</key>
+    <string>600</string>
+    <key>Q2_WORKER_WARM_INTERVAL</key>
+    <string>30</string>
+    <key>Q2_WORKER_RETEST_INTERVAL</key>
+    <string>180</string>
+    <key>Q2_WORKER_SAMPLE_LIMIT</key>
+    <string>1000</string>
+    <key>Q2_WORKER_CONCURRENCY</key>
+    <string>4</string>
+    <key>Q2_WORKER_RETEST_CONCURRENCY</key>
+    <string>3</string>
+    <key>ORANGE_MONGO_HOST</key>
+    <string>127.0.0.1</string>
+    <key>ORANGE_MONGO_PORT</key>
+    <string>27018</string>
+    <key>ORANGE_MONGO_USER</key>
+    <string>orange</string>
+    <key>ORANGE_MONGO_PASSWORD</key>
+    <string>orange_p@ss</string>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/llm/q2/output/q2_macbook_worker.launchd.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/tigerj/Work/OrangeLabs/Orange/Orange-AI/llm/q2/output/q2_macbook_worker.launchd.err.log</string>
+</dict>
+</plist>

@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Orange Mongo Query Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["plan_type", "collection", "time_range", "group_by", "metrics", "filters", "filter_mode", "sort", "limit", "limit_per_group", "output", "notes"],
+  "properties": {
+    "plan_type": {
+      "type": "string",
+      "const": "mongo_query"
+    },
+    "collection": {
+      "type": "string",
+      "enum": ["system", "sprocess", "node", "nodeinfo", "sprocess_nodeinfo", "filelist", "detect", "report", "timeline", "command_template", "command", "user", "group"]
+    },
+    "time_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "timezone", "days", "hours", "start", "end"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["relative", "absolute"]
+        },
+        "days": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "maximum": 365
+        },
+        "hours": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "maximum": 8760
+        },
+        "start": {
+          "type": ["string", "null"]
+        },
+        "end": {
+          "type": ["string", "null"]
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "group_by": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "weekday",
+          "hour",
+          "date",
+          "id",
+          "ProcName",
+          "ProcPath",
+          "Command",
+          "PProcName",
+          "PProcPath",
+          "CompanyName",
+          "ProductName",
+          "ProductVersion",
+          "FileDescription",
+          "FileName",
+          "FilePath",
+          "FileVersion",
+          "InstallPath",
+          "CreateTime",
+          "EventTime",
+          "InstallTime",
+          "FileSize",
+          "MD5",
+          "HostUrl",
+          "ZoneId",
+          "RuleId",
+          "Desc",
+          "Message",
+          "Event",
+          "TypeEventName",
+          "DocType",
+          "Name",
+          "Name2",
+          "Value",
+          "Value2",
+          "System.ComputerName",
+          "System.ip",
+          "User.name",
+          "User.deptName",
+          "title",
+          "memo",
+          "command_data.command",
+          "command_data.keyword",
+          "command_data.chart",
+          "command_data.query",
+          "is_broadcast",
+          "is_dynamic_target",
+          "retry",
+          "status",
+          "target_group_code",
+          "target_node_count",
+          "executed_count",
+          "success_count",
+          "created",
+          "updated",
+          "group_code",
+          "parent_code",
+          "role",
+          "emp_key",
+          "Signer",
+          "Codesign",
+          "IsSystem",
+          "name",
+          "label",
+          "command",
+          "data.CSName",
+          "data.Caption",
+          "data.BuildNumber",
+          "data.Version",
+          "data.UBR",
+          "data.OSArchitecture",
+          "data.Manufacturer",
+          "data.Model",
+          "data.BIOS.Manufacturer",
+          "data.BIOS.Name",
+          "data.BIOS.ReleaseDate",
+          "data.BaseBoard.Manufacturer",
+          "data.BaseBoard.Product",
+          "data.BaseBoard.SerialNumber",
+          "data.BaseBoard.Status",
+          "data.SystemType",
+          "data.PCSystemType",
+          "data.TotalPhysicalMemory",
+          "data.Name",
+          "data.NumberOfCores",
+          "data.NumberOfLogicalProcessors",
+          "data.Capacity",
+          "data.BankLabel",
+          "data.DeviceLocator",
+          "data.Speed",
+          "data.Size",
+          "data.FreeSpace",
+          "data.SizeGB",
+          "data.FreeSpaceGB",
+          "data.FileSystem",
+          "data.DriveType",
+          "data.VolumeName",
+          "data.DisplayName",
+          "data.DisplayVersion",
+          "data.Publisher",
+          "data.DriverName",
+          "data.PortName",
+          "data.Default",
+          "data.HotFixID",
+          "data.InstalledOn",
+          "data.InstalledBy",
+          "data.Description",
+          "data.displayName",
+          "data.Signature",
+          "data.Status",
+          "data.name",
+          "data.version",
+          "data.publisher",
+          "data.installLocation",
+          "data.installKey",
+          "data.installedTime",
+          "data.Path",
+          "data.installSource",
+          "data.uninstallString",
+          "data.NetConnectionID",
+          "data.NetConnectionStatus",
+          "data.NetEnabled",
+          "data.MACAddress",
+          "data.ip",
+          "data.mac",
+          "data.gateway",
+          "data.subnet",
+          "data.dhcp",
+          "data.best",
+          "data.type",
+          "data.index",
+          "data.ProductName",
+          "data.ProductVersion",
+          "data.FileDescription",
+          "data.FileVersion",
+          "data.Signer",
+          "data.Codesign",
+          "data.IsSystem",
+          "data.FileCountersPath",
+          "data.FileCounters.ProcName",
+          "data.FileCounters.ProcPath",
+          "data.FileCounters.CounterCount",
+          "data.FileCounters.pscore",
+          "data.FileCounters.CPU",
+          "data.FileCounters.Memory",
+          "data.FileCounters.IO",
+          "data.FileCounters.Handle",
+          "data.PathCounters.pscore",
+          "data.PathCounters.CPU",
+          "data.PathCounters.Memory",
+          "data.PathCounters.IO",
+          "data.PathCounters.Handle",
+          "target.status",
+          "target.ComputerName",
+          "target.UserName",
+          "target.UserRole",
+          "target.ip",
+          "target.Manufacturer",
+          "target.Model",
+          "status",
+          "ip",
+          "ip2",
+          "ticket",
+          "guid",
+          "User.key",
+          "User.name",
+          "User.user.name",
+          "User.user.role",
+          "System.ComputerName",
+          "System.UserName",
+          "System.DomainName",
+          "System.name",
+          "System.version",
+          "System.type",
+          "System.Manufacturer",
+          "System.Model",
+          "System.SerialNumber",
+          "System.ip",
+          "System.VM",
+          "Agent.version",
+          "Agent.revision",
+          "Agent.build",
+          "Agent.path",
+          "node.CSName",
+          "node.OSCaption",
+          "node.BuildNumber",
+          "node.UBR",
+          "node.OSArchitecture",
+          "node.CPUName",
+          "node.Cores",
+          "node.LogicalProcessors",
+          "health"
+        ]
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "op", "field"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+          },
+          "op": {
+            "type": "string",
+            "enum": ["sum", "avg", "max", "min", "count", "count_distinct", "avg_by_count"]
+          },
+          "field": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "filters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "op", "value"],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "op": {
+            "type": "string",
+            "enum": ["eq", "ne", "gt", "gte", "lt", "lte", "regex", "exists", "missing", "empty", "not_empty"]
+          },
+          "value": {
+            "type": ["string", "number", "integer", "boolean", "null"]
+          }
+        }
+      }
+    },
+    "filter_mode": {
+      "type": "string",
+      "enum": ["all", "any"]
+    },
+    "sort": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "direction"],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["asc", "desc"]
+          }
+        }
+      }
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "limit_per_group": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "maximum": 100
+    },
+    "output": {
+      "type": "string",
+      "enum": ["table", "line_chart", "bar_chart", "pie_chart"]
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

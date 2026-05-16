@@ -11,6 +11,7 @@ llm/**/log/
 llm/log/
 llm/q1/job/
 llm/q1/proposal/pending/
+llm/q2/output/
 
 # --- Windows Development (Body) ---
 bin/
@@ -29,3 +30,6 @@ server.log
 q1_server.stderr.log
 q1_test_output.txt
 상대경로
+
+# --- 작전주 디텍터 (개인 프로젝트, git 제외) ---
+coin/
